@@ -1,0 +1,103 @@
+---
+const {
+  heading = "Get the free workflow",
+  subheading = "Drop your email. I'll send the workflow JSON, setup guide, and a 5-min Loom walkthrough.",
+  tag = "newsletter",
+} = Astro.props;
+
+// Replace with your deployed Worker URL after running `wrangler deploy`
+const WORKER_URL = "https://gerardagba-beehiiv-proxy.gerardagba.workers.dev";
+---
+<section class="bg-[color:var(--color-card)] rounded-2xl p-8 md:p-12 my-12">
+  <h3 class="text-2xl md:text-3xl font-bold mb-3">{heading}</h3>
+  <p class="text-[color:var(--color-muted)] mb-6 max-w-xl">{subheading}</p>
+
+  <form
+    class="email-capture-form flex flex-col sm:flex-row gap-3 max-w-xl"
+    data-worker-url={WORKER_URL}
+    data-tag={tag}
+    novalidate
+  >
+    <!-- Honeypot: humans don't see it; bots will fill it -->
+    <input
+      type="text"
+      name="website"
+      tabindex="-1"
+      autocomplete="off"
+      class="hidden"
+      aria-hidden="true"
+    />
+
+    <input
+      type="email"
+      name="email"
+      required
+      placeholder="you@yourbrand.com"
+      class="flex-1 px-4 py-3 rounded-lg bg-black/50 border border-white/10 focus:border-[color:var(--color-accent)] outline-none text-white placeholder:text-[color:var(--color-muted)]"
+    />
+    <button
+      type="submit"
+      class="px-6 py-3 rounded-lg bg-[color:var(--color-accent)] text-black font-semibold hover:opacity-90 transition whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed"
+    >
+      <span class="label">Send me the workflow →</span>
+      <span class="label-loading hidden">Sending&hellip;</span>
+    </button>
+  </form>
+
+  <p class="form-message hidden mt-4 text-sm" aria-live="polite"></p>
+
+  <p class="text-xs text-[color:var(--color-muted)] mt-3">
+    No spam. One email per new episode. Unsubscribe in one click.
+  </p>
+</section>
+
+<script>
+  // Progressive enhancement: handle all email-capture forms on the page.
+  document.querySelectorAll<HTMLFormElement>(".email-capture-form").forEach((form) => {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const workerUrl = form.dataset.workerUrl!;
+      const tag = form.dataset.tag || "newsletter";
+
+      const button = form.querySelector<HTMLButtonElement>("button[type=submit]")!;
+      const label = button.querySelector<HTMLElement>(".label")!;
+      const labelLoading = button.querySelector<HTMLElement>(".label-loading")!;
+      const message = form.parentElement!.querySelector<HTMLElement>(".form-message")!;
+
+      const fd = new FormData(form);
+      const email = (fd.get("email") || "").toString().trim();
+      const website = (fd.get("website") || "").toString().trim();
+      if (!email) return;
+
+      button.disabled = true;
+      label.classList.add("hidden");
+      labelLoading.classList.remove("hidden");
+      message.classList.add("hidden");
+
+      try {
+        const res = await fetch(workerUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, tag, website }),
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (res.ok && data.success) {
+          form.classList.add("hidden");
+          message.textContent = "Check your inbox — the workflow is on its way.";
+          message.classList.remove("hidden");
+          message.classList.add("text-[color:var(--color-accent)]");
+        } else {
+          throw new Error(data.error || "Something went wrong");
+        }
+      } catch (err) {
+        button.disabled = false;
+        label.classList.remove("hidden");
+        labelLoading.classList.add("hidden");
+        message.textContent = "Something went wrong. Try again, or email hello@gerardagba.com.";
+        message.classList.remove("hidden");
+        message.classList.add("text-red-400");
+      }
+    });
+  });
+</script>

@@ -1,0 +1,61 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const effectiveDate = "May 17, 2026";
+---
+<BaseLayout title="Privacy Policy · Gerard Agba" description="Privacy policy for gerardagba.com.">
+  <section class="max-w-3xl mx-auto px-6 pt-20 pb-24">
+    <p class="text-xs uppercase tracking-widest text-[color:var(--color-accent)] mb-4">Privacy</p>
+    <h1 class="text-4xl font-extrabold tracking-tight mb-2">Privacy Policy</h1>
+    <p class="text-sm text-[color:var(--color-muted)]">Effective: {effectiveDate}</p>
+
+    <div class="prose prose-invert mt-10 max-w-none space-y-6 text-[color:var(--color-fg)] leading-relaxed">
+      <h2 class="text-xl font-bold mt-8">1. What this site is</h2>
+      <p>
+        gerardagba.com is the personal website of Gerard Agba, a freelance n8n
+        workflow builder. It exists to share free workflow templates and offer
+        paid services to direct-to-consumer (DTC) brands.
+      </p>
+
+      <h2 class="text-xl font-bold mt-8">2. What I collect</h2>
+      <ul class="list-disc list-inside text-[color:var(--color-muted)] space-y-2">
+        <li><strong class="text-white">Email address</strong> — when you submit a form to download a workflow template or subscribe to the newsletter.</li>
+        <li><strong class="text-white">Basic analytics</strong> — anonymous page views, country-level geography, referrer. No fingerprinting.</li>
+        <li><strong class="text-white">Booking info</strong> — if you book a call via Cal.com/Calendly, that service collects name, email, and any details you provide.</li>
+      </ul>
+
+      <h2 class="text-xl font-bold mt-8">3. Where it goes</h2>
+      <p>
+        Email submissions are stored by <a href="https://beehiiv.com" class="text-[color:var(--color-accent)] hover:underline">Beehiiv</a>,
+        my email service provider. Booking data is stored by the calendar
+        provider (Cal.com or Calendly). Analytics is stored anonymously by
+        GitHub Pages access logs and (if added later) a privacy-friendly
+        analytics tool. I don&rsquo;t sell or share your data.
+      </p>
+
+      <h2 class="text-xl font-bold mt-8">4. How you can opt out or delete your data</h2>
+      <p>
+        Every newsletter email includes a one-click unsubscribe link.
+        To delete your data entirely, email <a href="mailto:hello@gerardagba.com" class="text-[color:var(--color-accent)] hover:underline">hello@gerardagba.com</a>
+        and I&rsquo;ll remove you from all systems within 14 days (typically 1&ndash;2 days).
+      </p>
+
+      <h2 class="text-xl font-bold mt-8">5. Cookies</h2>
+      <p>
+        This site does not set tracking cookies. Embedded videos (YouTube)
+        and forms (Beehiiv) may set their own cookies when loaded.
+      </p>
+
+      <h2 class="text-xl font-bold mt-8">6. Children</h2>
+      <p>
+        This site is not directed to children under 16 and I do not knowingly
+        collect data from them.
+      </p>
+
+      <h2 class="text-xl font-bold mt-8">7. Contact</h2>
+      <p>
+        Questions: <a href="mailto:hello@gerardagba.com" class="text-[color:var(--color-accent)] hover:underline">hello@gerardagba.com</a>.
+      </p>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,11 @@
+name = "gerardagba-beehiiv-proxy"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+
+[vars]
+# Comma-separated origins allowed by CORS. Adjust after you go live.
+ALLOWED_ORIGINS = "http://localhost:4321,https://gerardagba.com,https://www.gerardagba.com"
+
+# Secrets (NOT set here — use `wrangler secret put`):
+#   BEEHIIV_API_KEY
+#   BEEHIIV_PUB_ID

@@ -1,0 +1,56 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const effectiveDate = "May 17, 2026";
+---
+<BaseLayout title="Terms of Use · Gerard Agba" description="Terms of use for gerardagba.com.">
+  <section class="max-w-3xl mx-auto px-6 pt-20 pb-24">
+    <p class="text-xs uppercase tracking-widest text-[color:var(--color-accent)] mb-4">Terms</p>
+    <h1 class="text-4xl font-extrabold tracking-tight mb-2">Terms of Use</h1>
+    <p class="text-sm text-[color:var(--color-muted)]">Effective: {effectiveDate}</p>
+
+    <div class="prose prose-invert mt-10 max-w-none space-y-6 text-[color:var(--color-fg)] leading-relaxed">
+      <h2 class="text-xl font-bold mt-8">1. Use of free workflow templates</h2>
+      <p>
+        Workflow JSON files, setup guides, and walkthroughs distributed via
+        this site are licensed for your own commercial and personal use. You
+        may modify them. You may not resell them or republish them as a paid
+        product or course.
+      </p>
+
+      <h2 class="text-xl font-bold mt-8">2. No warranty</h2>
+      <p>
+        Templates are provided <strong>&ldquo;as-is.&rdquo;</strong> They are reference implementations,
+        not certified production code. You are responsible for testing them
+        against your own data before relying on them for financial reporting,
+        compliance, or any other business-critical purpose.
+      </p>
+
+      <h2 class="text-xl font-bold mt-8">3. Paid services</h2>
+      <p>
+        Paid engagements (workflow installs, custom builds) are governed by
+        a separate Statement of Work signed at engagement start. Nothing on
+        this site constitutes a binding offer or contract.
+      </p>
+
+      <h2 class="text-xl font-bold mt-8">4. Limitation of liability</h2>
+      <p>
+        To the maximum extent permitted by law, I am not liable for any
+        indirect, incidental, or consequential damages arising from your use
+        of free templates or this website.
+      </p>
+
+      <h2 class="text-xl font-bold mt-8">5. Changes</h2>
+      <p>
+        These terms may be updated. The effective date above will change
+        when they do. Continued use after a change means you accept the
+        updated terms.
+      </p>
+
+      <h2 class="text-xl font-bold mt-8">6. Contact</h2>
+      <p>
+        Questions: <a href="mailto:hello@gerardagba.com" class="text-[color:var(--color-accent)] hover:underline">hello@gerardagba.com</a>.
+      </p>
+    </div>
+  </section>
+</BaseLayout>

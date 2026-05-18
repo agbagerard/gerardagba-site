@@ -1,0 +1,110 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import EmailCapture from "../components/EmailCapture.astro";
+
+// Each template maps to an episode. `live: false` means the episode/page isn't published yet.
+const categories = [
+  {
+    name: "Revenue & Sales Reconciliation",
+    blurb: "Every dollar earned tracked, verified, and moved correctly through the books.",
+    items: [
+      { n: "01", slug: "multi-channel-sales-sync", title: "Multi-Channel Sales Sync", live: true },
+      { n: "02", slug: "payment-processor-audit", title: "Payment Processor Audit", live: false },
+      { n: "03", slug: "real-time-cogs-calculator", title: "Real-Time COGS Calculator", live: false },
+      { n: "04", slug: "tax-jurisdiction-tracker", title: "Tax Jurisdiction Tracker", live: false },
+      { n: "05", slug: "refund-recovery-guard", title: "Refund Recovery Guard", live: false },
+      { n: "06", slug: "amazon-fba-fee-auditor", title: "Amazon FBA Fee Auditor", live: false },
+      { n: "07", slug: "subscription-mrr-tracker", title: "Subscription MRR Tracker", live: false },
+      { n: "08", slug: "gift-card-liability-logger", title: "Gift Card Liability Logger", live: false },
+      { n: "09", slug: "store-credit-manager", title: "Store Credit Manager", live: false },
+      { n: "10", slug: "currency-auto-adjustment", title: "Currency Auto-Adjustment", live: false },
+    ],
+  },
+  {
+    name: "Inventory & Supply Chain Finance",
+    blurb: "Stop dead money sitting in the warehouse.",
+    items: [
+      { n: "11", slug: "low-stock-capital-forecaster", title: "Low Stock Capital Forecaster", live: false },
+      { n: "12", slug: "inventory-aging-alert", title: "Inventory Aging Alert", live: false },
+      { n: "13", slug: "po-to-invoice-matcher", title: "PO to Invoice Matcher", live: false },
+      { n: "14", slug: "lead-time-buffer-adjuster", title: "Lead-Time Buffer Adjuster", live: false },
+      { n: "15", slug: "drop-ship-margin-monitor", title: "Drop-Ship Margin Monitor", live: false },
+    ],
+  },
+  {
+    name: "Expense & Overhead Management",
+    blurb: "Eliminate administrative leakage and watch the burn rate.",
+    items: [
+      { n: "21", slug: "ad-spend-roi-guard", title: "Ad Spend ROI Guard", live: false },
+      { n: "22", slug: "saas-subscription-auditor", title: "SaaS Subscription Auditor", live: false },
+      { n: "25", slug: "receipt-to-ledger-ocr", title: "Receipt-to-Ledger OCR", live: false },
+      { n: "30", slug: "cash-flow-runway-forecaster", title: "Cash Flow Runway Forecaster", live: false },
+    ],
+  },
+  {
+    name: "Customer & Growth Accounting",
+    blurb: "Turn customer behavior into financial signal.",
+    items: [
+      { n: "31", slug: "ltv-segmenter", title: "LTV (Lifetime Value) Segmenter", live: false },
+      { n: "32", slug: "chargeback-response-builder", title: "Chargeback Response Builder", live: false },
+      { n: "37", slug: "automated-dunning-logic", title: "Automated Dunning Logic", live: false },
+    ],
+  },
+  {
+    name: "Compliance, Tax & Audit",
+    blurb: "Audit-proof the business.",
+    items: [
+      { n: "41", slug: "audit-ready-document-vault", title: "Audit-Ready Document Vault", live: false },
+      { n: "42", slug: "sales-tax-nexus-alert", title: "Sales Tax Nexus Alert", live: false },
+      { n: "43", slug: "1099-contractor-tracker", title: "1099 Contractor Tracker", live: false },
+      { n: "50", slug: "balance-sheet-health-check", title: "Balance Sheet Health Check", live: false },
+    ],
+  },
+];
+---
+<BaseLayout
+  title="Free n8n Templates · Gerard Agba"
+  description="Every free n8n workflow I've shipped. Multi-channel reconciliation, FBA fee audits, chargeback recovery, and 40+ more."
+>
+  <section class="max-w-5xl mx-auto px-6 pt-20 pb-12">
+    <p class="text-xs uppercase tracking-widest text-[color:var(--color-accent)] mb-4">Free templates</p>
+    <h1 class="text-4xl md:text-5xl font-extrabold leading-tight tracking-tight max-w-3xl">
+      Every free n8n workflow I&rsquo;ve shipped, organized by what it fixes.
+    </h1>
+    <p class="text-lg text-[color:var(--color-muted)] mt-6 max-w-2xl">
+      Each template comes with the n8n JSON, an 8-page setup guide, and a
+      5-minute Loom walkthrough. Free forever.
+    </p>
+  </section>
+
+  {categories.map((cat) => (
+    <section class="max-w-5xl mx-auto px-6 mt-16">
+      <h2 class="text-2xl md:text-3xl font-bold mb-2">{cat.name}</h2>
+      <p class="text-[color:var(--color-muted)] mb-6">{cat.blurb}</p>
+      <div class="grid md:grid-cols-2 gap-3">
+        {cat.items.map((item) => (
+          <a
+            href={item.live ? `/episodes/${item.slug}` : "#"}
+            class={`flex items-center justify-between p-4 rounded-lg border border-white/10 transition ${item.live ? "hover:border-[color:var(--color-accent)] hover:bg-white/[0.02]" : "opacity-50 cursor-not-allowed"}`}
+          >
+            <div>
+              <div class="text-xs text-[color:var(--color-muted)]">EP {item.n}</div>
+              <div class="font-medium">{item.title}</div>
+            </div>
+            <span class="text-xs text-[color:var(--color-muted)]">
+              {item.live ? "Get it →" : "Soon"}
+            </span>
+          </a>
+        ))}
+      </div>
+    </section>
+  ))}
+
+  <section class="max-w-5xl mx-auto px-6 mt-20">
+    <EmailCapture
+      heading="Get every new template free"
+      subheading="One email when a new workflow drops. Unsubscribe in one click."
+      tag="newsletter"
+    />
+  </section>
+</BaseLayout>
