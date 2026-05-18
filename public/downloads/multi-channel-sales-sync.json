@@ -1,0 +1,1014 @@
+{
+  "name": "Multi-Channel Sales Sync",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1152,
+        544
+      ],
+      "id": "0eef48a4-ca63-470c-98e2-8fb803a09a84",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "options": {
+          "delimiter": ",",
+          "headerRow": true
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -256,
+        -336
+      ],
+      "id": "7f12843a-4810-43a4-974b-15b173ba94c7",
+      "name": "Shopify Orders"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/data/sample_shopify_orders_2026-01.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -464,
+        -336
+      ],
+      "id": "32880aad-0233-4d48-90f6-7202d743eba1",
+      "name": "Read Shopify CSV"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/data/sample_shopify_line_items_2026-01.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -400,
+        1472
+      ],
+      "id": "5a3d1f9e-7c77-4c91-ad8e-e5389406be9b",
+      "name": "Read Shopify Line Items CSV"
+    },
+    {
+      "parameters": {
+        "options": {
+          "delimiter": ",",
+          "headerRow": true
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -192,
+        1472
+      ],
+      "id": "3de79f08-9d32-47d5-92d0-a4eb8b7f1faf",
+      "name": "Shopify Line Items"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/data/sample_stripe_transactions_2026-01.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -496,
+        96
+      ],
+      "id": "1f3cfe50-659f-4e23-8648-219ec3103f26",
+      "name": "Read Stripe Transactions CSV"
+    },
+    {
+      "parameters": {
+        "options": {
+          "delimiter": ",",
+          "headerRow": true
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -288,
+        96
+      ],
+      "id": "a048d8d4-9350-4bdf-83dd-f695bbd27ad3",
+      "name": "Stripe"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/data/sample_amazon_settlements_2026-01.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -608,
+        496
+      ],
+      "id": "2b7bd14a-0839-403e-a2da-de0e3bbbe27a",
+      "name": "Read Amazon Settlements CSV"
+    },
+    {
+      "parameters": {
+        "options": {
+          "delimiter": ",",
+          "headerRow": true
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -400,
+        496
+      ],
+      "id": "4e1bdb40-a9cc-4576-a7c4-5270efc5df67",
+      "name": "Amazon"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/data/sample_faire_wholesale_2026-01.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -480,
+        864
+      ],
+      "id": "b3d480fa-49a2-491c-aa1a-75b867cf4850",
+      "name": "Read  Faire Wholesale CSV"
+    },
+    {
+      "parameters": {
+        "options": {
+          "delimiter": ",",
+          "headerRow": true
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -272,
+        864
+      ],
+      "id": "3376262c-0400-46f0-9a77-3cbd47609d05",
+      "name": "Faire"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/data/sample_mercury_bank_2026-01.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -304,
+        1184
+      ],
+      "id": "9d136a96-05b1-41f8-9d81-484b34278488",
+      "name": "Read  Mercury Bank CSV"
+    },
+    {
+      "parameters": {
+        "options": {
+          "delimiter": ",",
+          "headerRow": true
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -64,
+        1184
+      ],
+      "id": "6202aa2f-4dd1-476b-996b-a330e6377a82",
+      "name": "Mercury"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize each Shopify order into an enriched shape\n// Keeps raw data + adds parsed fields + computed flags\n\nconst orders = $input.all();\n\nreturn orders.map(item => {\n  const order = item.json;\n  \n  // Numeric parsing (CSV gives us strings)\n  const subtotal = parseFloat(order.subtotal_price) || 0;\n  const discount = parseFloat(order.total_discounts) || 0;\n  const shipping = parseFloat(order.shipping_price) || 0;\n  const tax = parseFloat(order.total_tax) || 0;\n  const total = parseFloat(order.total_price) || 0;\n  const refunded = parseFloat(order.refunded_amount) || 0;\n  \n  // Date in YYYY-MM-DD for easier grouping later\n  const date = new Date(order.created_at).toISOString().split('T')[0];\n  \n  // Tags as array (CSV stores them comma-separated)\n  const tags = (order.tags || '').split(',').filter(t => t.length > 0);\n  \n  return {\n    json: {\n      // Source identification\n      source: 'shopify',\n      transaction_id: order.order_id,\n      transaction_name: order.name,\n      match_key: order.order_id,\n      \n      // Time\n      date,\n      created_at: order.created_at,\n      \n      // Financial\n      currency: order.currency,\n      subtotal,\n      discount,\n      shipping,\n      tax,\n      total,\n      refunded,\n      net_revenue: subtotal - discount,\n      \n      // Status flags\n      is_refunded: refunded > 0,\n      is_partially_refunded: order.financial_status === 'partially_refunded',\n      is_voided: order.financial_status === 'voided',\n      \n      // Customer\n      email: order.email,\n      customer_name: `${order.first_name} ${order.last_name}`.trim(),\n      shipping_country: order.shipping_country,\n      \n      // Channel metadata\n      gateway: order.gateway,\n      source_channel: order.source_name,\n      is_subscription: tags.includes('subscription'),\n      is_returning: tags.includes('returning_customer'),\n      has_chargeback: tags.includes('chargeback_dispute'),\n      discount_code: order.discount_code || null,\n      tags,\n      \n      // Preserve original row for audit trail\n      raw: order,\n    },\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -48,
+        -336
+      ],
+      "id": "69bbe48f-c0c1-4aa3-baab-a83f01da775e",
+      "name": "Normalize Shopify Orders"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nreturn items.map(item => {\n  const row = item.json;\n  const quantity = parseInt(row.quantity) || 0;\n  const lineTotal = parseFloat(row.line_total) || 0;\n  const lineCogs = parseFloat(row.line_cogs) || 0;\n\n  return {\n    json: {\n      source: 'shopify_lines',\n      transaction_id: `${row.order_id}_${row.sku}`,\n      match_key: row.order_id,\n      order_id: row.order_id,\n      order_name: row.order_name,\n      sku: row.sku,\n      product_title: row.product_title,\n      quantity,\n      price: parseFloat(row.price) || 0,\n      line_total: lineTotal,\n      cogs_per_unit: parseFloat(row.cogs_per_unit) || 0,\n      line_cogs: lineCogs,\n      line_margin: lineTotal - lineCogs,\n      line_margin_pct: lineTotal > 0 ? (lineTotal - lineCogs) / lineTotal : 0,\n      raw: row,\n    },\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        1472
+      ],
+      "id": "dda92977-8276-4fef-b7db-ce4e5e08c133",
+      "name": "Normalize Shopify Line Items"
+    },
+    {
+      "parameters": {
+        "jsCode": "const txns = $input.all();\n\nreturn txns.map(item => {\n  const row = item.json;\n  const date = new Date(row.created).toISOString().split('T')[0];\n\n  let normalizedType = 'unknown';\n  if (row.type === 'charge') normalizedType = 'revenue';\n  else if (row.type === 'refund') normalizedType = 'refund';\n  else if (row.type === 'adjustment' && row.status === 'lost') normalizedType = 'chargeback';\n  else if (row.type === 'adjustment') normalizedType = 'fee';\n\n  return {\n    json: {\n      source: 'stripe',\n      transaction_id: row.id,\n      match_key: row.shopify_order_id,\n      type: row.type,\n      normalized_type: normalizedType,\n      date,\n      created_at: row.created,\n      amount: parseFloat(row.amount) || 0,\n      fee: parseFloat(row.fee) || 0,\n      net: parseFloat(row.net) || 0,\n      currency: (row.currency || '').toUpperCase(),\n      stripe_object_id: row.source,\n      shopify_order_id: row.shopify_order_id,\n      shopify_order_name: row.shopify_order_name,\n      customer_email: row.customer_email,\n      status: row.status,\n      is_charge: row.type === 'charge',\n      is_refund: row.type === 'refund',\n      is_dispute: row.type === 'adjustment',\n      is_lost_dispute: row.status === 'lost',\n      raw: row,\n    },\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        96
+      ],
+      "id": "75d2dba3-5dfc-4f7c-9195-c4f204800bad",
+      "name": "Normalize Stripe"
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all();\n\nconst glCategory = (desc) => {\n  const d = (desc || '').toLowerCase();\n  if (d.includes('principal')) return 'revenue';\n  if (d.includes('tax')) return 'sales_tax';\n  if (d === 'commission' || d === 'refundcommission') return d === 'refundcommission' ? 'refund_commission' : 'marketplace_commission';\n  if (d.includes('fbaperunitfulfillmentfee')) return 'fba_fulfillment_fee';\n  if (d.includes('storage') && d.includes('long-term')) return 'fba_long_term_storage';\n  if (d.includes('storage')) return 'fba_storage_fee';\n  if (d.includes('advertising')) return 'ad_spend';\n  return 'other';\n};\n\nreturn rows.map(item => {\n  const row = item.json;\n  const ttype = row['transaction-type'];\n  const adesc = row['amount-description'];\n\n  return {\n    json: {\n      source: 'amazon',\n      transaction_id: `${row['settlement-id']}_${row['adjustment-id'] || row['order-id'] || 'n'}_${adesc}_${row.sku || 'na'}_${row['posted-date-time']}`,\n      match_key: row['settlement-id'],\n      settlement_id: row['settlement-id'],\n      settlement_start: row['settlement-start-date'],\n      settlement_end: row['settlement-end-date'],\n      deposit_date: row['deposit-date'],\n      posted_date: row['posted-date'],\n      order_id: row['order-id'] || '',\n      transaction_type: ttype,\n      amount_description: adesc,\n      gl_category: glCategory(adesc),\n      amount: parseFloat(row.amount) || 0,\n      currency: 'USD',\n      sku: row.sku || null,\n      quantity: parseInt(row['quantity-purchased']) || 0,\n      is_order: ttype === 'Order',\n      is_refund: ttype === 'Refund',\n      is_storage_fee: ttype === 'Storage Fee',\n      is_ad_spend: ttype === 'Cost of Advertising',\n      raw: row,\n    },\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        496
+      ],
+      "id": "4a0f3c27-d611-4bc0-b2aa-5f273d7d0f97",
+      "name": "Normalize Amazon"
+    },
+    {
+      "parameters": {
+        "jsCode": "const orders = $input.all();\n\nreturn orders.map(item => {\n  const row = item.json;\n  const created = new Date(row.created_at);\n  const date = created.toISOString().split('T')[0];\n  const dow = created.getDay();\n  const daysToSun = dow === 0 ? 0 : 7 - dow;\n  const weekEnding = new Date(created);\n  weekEnding.setDate(created.getDate() + daysToSun);\n  const weekEndingStr = weekEnding.toISOString().split('T')[0];\n\n  return {\n    json: {\n      source: 'faire',\n      transaction_id: row.order_id,\n      match_key: weekEndingStr,\n      date,\n      created_at: row.created_at,\n      ship_date: row.ship_date,\n      payment_due_date: row.payment_due_date,\n      week_ending: weekEndingStr,\n      subtotal_wholesale: parseFloat(row.subtotal_wholesale) || 0,\n      commission_rate: parseFloat(row.faire_commission_rate) || 0,\n      commission: parseFloat(row.faire_commission) || 0,\n      net_payable: parseFloat(row.net_payable_to_brand) || 0,\n      boutique_name: row.boutique_name,\n      boutique_state: row.boutique_state,\n      total_units: parseInt(row.total_units) || 0,\n      status: row.status,\n      is_paid: row.payment_received === 'true',\n      is_first_order: row.is_first_order === 'true',\n      raw: row,\n    },\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        864
+      ],
+      "id": "bac6dc13-2486-4372-b9a4-31fe0820ab6e",
+      "name": "Normalize Faire"
+    },
+    {
+      "parameters": {
+        "jsCode": "const txns = $input.all();\n\nconst classify = (counterparty) => {\n  const c = (counterparty || '').toUpperCase();\n  if (c.includes('SHOPIFY PAYMENTS')) return { channel: 'shopify', txn_class: 'deposit', expected_source: 'stripe_daily' };\n  if (c.includes('AMAZON')) return { channel: 'amazon', txn_class: 'deposit', expected_source: 'amazon_settlement' };\n  if (c.includes('FAIRE')) return { channel: 'faire', txn_class: 'deposit', expected_source: 'faire_weekly' };\n  if (c.includes('PAYPAL')) return { channel: 'paypal', txn_class: 'deposit', expected_source: 'paypal_weekly' };\n  if (c.includes('KLARNA')) return { channel: 'klarna', txn_class: 'deposit', expected_source: 'klarna_weekly' };\n  if (c.includes('SPA') || c.includes('WELLNESS')) return { channel: 'wholesale_direct', txn_class: 'deposit', expected_source: 'wholesale_invoice' };\n  if (c.includes('SHIPBOB')) return { channel: 'ops', txn_class: 'expense', gl_category: 'fulfillment' };\n  if (c.includes('GUSTO')) return { channel: 'ops', txn_class: 'expense', gl_category: 'payroll' };\n  if (c.includes('META') || c.includes('GOOGLE ADS') || c.includes('LIFTOFF')) return { channel: 'ops', txn_class: 'expense', gl_category: 'advertising' };\n  if (c.includes('MERIDIAN')) return { channel: 'ops', txn_class: 'expense', gl_category: 'inventory_purchase' };\n  if (c.includes('CFO') || c.includes('DAVID PARK')) return { channel: 'ops', txn_class: 'expense', gl_category: 'professional_services' };\n  if (c.includes('MERCURY CC')) return { channel: 'ops', txn_class: 'transfer', gl_category: 'credit_card_payment' };\n  if (c.match(/SHOPIFY|KLAVIYO|RECHARGE|GORGIAS|JUNIP|COGSY|QBO|INTUIT/)) return { channel: 'ops', txn_class: 'expense', gl_category: 'saas' };\n  return { channel: 'unknown', txn_class: 'unknown', gl_category: 'review' };\n};\n\nreturn txns.map(item => {\n  const row = item.json;\n  const cls = classify(row.counterparty);\n\n  return {\n    json: {\n      source: 'mercury',\n      transaction_id: row.transaction_id,\n      match_key: row.posted_at,\n      posted_at: row.posted_at,\n      date: row.posted_at,\n      amount: parseFloat(row.amount) || 0,\n      type: row.type,\n      counterparty: row.counterparty,\n      description: row.description,\n      running_balance: parseFloat(row.running_balance) || 0,\n      channel: cls.channel,\n      txn_class: cls.txn_class,\n      gl_category: cls.gl_category || null,\n      expected_source: cls.expected_source || null,\n      is_deposit: row.type === 'credit',\n      is_expense: row.type === 'debit',\n      raw: row,\n    },\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        1184
+      ],
+      "id": "4390fe31-4578-49f0-a784-e0229035a087",
+      "name": "Normalize Mercury"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pull from both connected inputs (Shopify orders + Stripe)\n// Differentiate by the 'source' tag each normalizer added\nconst allItems = $input.all();\n\nconst shopifyOrders = allItems.filter(item => item.json.source === 'shopify');\nconst stripeTxns = allItems.filter(item => item.json.source === 'stripe');\n\n// Build a lookup index of Stripe transactions by Shopify order ID\nconst stripeByOrder = {};\nstripeTxns.forEach(item => {\n  const txn = item.json;\n  const orderId = txn.shopify_order_id;\n  if (!orderId) return;\n  if (!stripeByOrder[orderId]) {\n    stripeByOrder[orderId] = { charges: [], refunds: [], disputes: [] };\n  }\n  if (txn.is_charge) stripeByOrder[orderId].charges.push(txn);\n  else if (txn.is_refund) stripeByOrder[orderId].refunds.push(txn);\n  else if (txn.is_dispute) stripeByOrder[orderId].disputes.push(txn);\n});\n\n// Filter to Shopify Payments orders only, then enrich\nreturn shopifyOrders\n  .filter(item => item.json.gateway === 'shopify_payments')\n  .map(item => {\n    const order = item.json;\n    const stripe = stripeByOrder[order.transaction_id] || { charges: [], refunds: [], disputes: [] };\n\n    const stripeGross = stripe.charges.reduce((s, c) => s + c.amount, 0);\n    const stripeFee = stripe.charges.reduce((s, c) => s + c.fee, 0);\n    const stripeNet = stripe.charges.reduce((s, c) => s + c.net, 0);\n    const stripeRefunded = stripe.refunds.reduce((s, r) => s + Math.abs(r.amount), 0);\n    const stripeDisputeFees = stripe.disputes.reduce((s, d) => s + (d.fee || 0), 0);\n\n    return {\n      json: {\n        ...order,\n        has_stripe_match: stripe.charges.length > 0,\n        stripe_charge_count: stripe.charges.length,\n        stripe_refund_count: stripe.refunds.length,\n        stripe_dispute_count: stripe.disputes.length,\n        stripe_gross: Math.round(stripeGross * 100) / 100,\n        stripe_fee: Math.round(stripeFee * 100) / 100,\n        stripe_net: Math.round(stripeNet * 100) / 100,\n        stripe_refunded: Math.round(stripeRefunded * 100) / 100,\n        stripe_dispute_fees: Math.round(stripeDisputeFees * 100) / 100,\n        stripe_charge_ids: stripe.charges.map(c => c.stripe_object_id),\n        stripe_refund_ids: stripe.refunds.map(r => r.stripe_object_id),\n      },\n    };\n  });"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        -160
+      ],
+      "id": "2c018028-39cd-4ba9-9a52-0af9d0056310",
+      "name": "Enrich Shopify with Stripe"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aggregate Amazon settlement rows into settlement-level totals\n// Each settlement becomes one journal entry candidate\n\nconst rows = $input.all();\nconst settlements = {};\n\nrows.forEach(item => {\n  const r = item.json;\n  const sid = r.settlement_id;\n  if (!sid) return;\n\n  if (!settlements[sid]) {\n    settlements[sid] = {\n      settlement_id: sid,\n      settlement_start: r.settlement_start,\n      settlement_end: r.settlement_end,\n      deposit_date: r.deposit_date,\n      // GL-allocated buckets\n      revenue: 0,\n      sales_tax: 0,\n      marketplace_commission: 0,\n      refund_commission: 0,\n      fba_fulfillment_fee: 0,\n      fba_storage_fee: 0,\n      fba_long_term_storage: 0,\n      ad_spend: 0,\n      refund_principal: 0,\n      other: 0,\n      // Counts\n      order_count: 0,\n      refund_count: 0,\n      row_count: 0,\n      // Net deposit\n      total_net: 0,\n    };\n  }\n\n  const s = settlements[sid];\n  const amt = r.amount;\n  s.total_net += amt;\n  s.row_count += 1;\n\n  if (r.gl_category === 'revenue' && r.is_order) {\n    s.revenue += amt;\n    s.order_count += 1;\n  } else if (r.gl_category === 'revenue' && r.is_refund) {\n    s.refund_principal += amt;\n    s.refund_count += 1;\n  } else if (r.gl_category === 'sales_tax') {\n    s.sales_tax += amt;\n  } else if (r.gl_category === 'marketplace_commission') {\n    s.marketplace_commission += amt;\n  } else if (r.gl_category === 'refund_commission') {\n    s.refund_commission += amt;\n  } else if (r.gl_category === 'fba_fulfillment_fee') {\n    s.fba_fulfillment_fee += amt;\n  } else if (r.gl_category === 'fba_storage_fee') {\n    s.fba_storage_fee += amt;\n  } else if (r.gl_category === 'fba_long_term_storage') {\n    s.fba_long_term_storage += amt;\n  } else if (r.gl_category === 'ad_spend') {\n    s.ad_spend += amt;\n  } else {\n    s.other += amt;\n  }\n});\n\n// Round monetary values and emit one item per settlement\nreturn Object.values(settlements).map(s => ({\n  json: {\n    source: 'amazon_aggregated',\n    settlement_id: s.settlement_id,\n    settlement_start: s.settlement_start,\n    settlement_end: s.settlement_end,\n    deposit_date: s.deposit_date,\n    revenue: Math.round(s.revenue * 100) / 100,\n    sales_tax: Math.round(s.sales_tax * 100) / 100,\n    marketplace_commission: Math.round(s.marketplace_commission * 100) / 100,\n    refund_commission: Math.round(s.refund_commission * 100) / 100,\n    fba_fulfillment_fee: Math.round(s.fba_fulfillment_fee * 100) / 100,\n    fba_storage_fee: Math.round(s.fba_storage_fee * 100) / 100,\n    fba_long_term_storage: Math.round(s.fba_long_term_storage * 100) / 100,\n    ad_spend: Math.round(s.ad_spend * 100) / 100,\n    refund_principal: Math.round(s.refund_principal * 100) / 100,\n    other: Math.round(s.other * 100) / 100,\n    order_count: s.order_count,\n    refund_count: s.refund_count,\n    row_count: s.row_count,\n    total_net: Math.round(s.total_net * 100) / 100,\n  },\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        496
+      ],
+      "id": "1ab63c97-8d9a-4aff-a7a8-221e45367d7e",
+      "name": "Aggregate Amazon Settlements"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aggregate Faire wholesale into weekly payouts\n// Only orders marked is_paid = true contribute to bank deposits\nconst orders = $input.all();\n\nconst weekly = {};\n\norders\n  .filter(item => item.json.is_paid)\n  .forEach(item => {\n    const o = item.json;\n    const week = o.week_ending;\n    if (!weekly[week]) {\n      weekly[week] = {\n        week_ending: week,\n        gross_wholesale: 0,\n        total_commission: 0,\n        net_payout: 0,\n        order_count: 0,\n        boutiques: new Set(),\n      };\n    }\n    weekly[week].gross_wholesale += o.subtotal_wholesale;\n    weekly[week].total_commission += o.commission;\n    weekly[week].net_payout += o.net_payable;\n    weekly[week].order_count += 1;\n    weekly[week].boutiques.add(o.boutique_name);\n  });\n\nreturn Object.values(weekly)\n  .sort((a, b) => a.week_ending.localeCompare(b.week_ending))\n  .map(w => ({\n    json: {\n      source: 'faire_aggregated',\n      week_ending: w.week_ending,\n      gross_wholesale: Math.round(w.gross_wholesale * 100) / 100,\n      total_commission: Math.round(w.total_commission * 100) / 100,\n      net_payout: Math.round(w.net_payout * 100) / 100,\n      order_count: w.order_count,\n      boutique_count: w.boutiques.size,\n      boutiques: Array.from(w.boutiques),\n    },\n  }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        864
+      ],
+      "id": "46ce591e-1e44-4110-a983-fe426ed9c269",
+      "name": "Aggregate Faire Weekly"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aggregate PayPal and Klarna orders by week\n// These gateways batch-deposit weekly, unlike Stripe's daily payouts\nconst orders = $input.all();\n\nconst aggregate = (gateway, feeRate) => {\n  const weekly = {};\n\n  orders\n    .filter(item => item.json.gateway === gateway && item.json.currency === 'USD')\n    .forEach(item => {\n      const o = item.json;\n      const created = new Date(o.created_at);\n      const dow = created.getDay();\n      const daysToSun = dow === 0 ? 0 : 7 - dow;\n      const weekEnding = new Date(created);\n      weekEnding.setDate(created.getDate() + daysToSun);\n      const week = weekEnding.toISOString().split('T')[0];\n\n      if (!weekly[week]) {\n        weekly[week] = {\n          week_ending: week,\n          gross_revenue: 0,\n          refunds: 0,\n          net_revenue: 0,\n          order_count: 0,\n        };\n      }\n      weekly[week].gross_revenue += o.total;\n      weekly[week].refunds += o.refunded;\n      weekly[week].net_revenue += (o.total - o.refunded);\n      weekly[week].order_count += 1;\n    });\n\n  return Object.values(weekly).map(w => ({\n    json: {\n      source: `${gateway}_aggregated`,\n      gateway,\n      week_ending: w.week_ending,\n      gross_revenue: Math.round(w.gross_revenue * 100) / 100,\n      refunds: Math.round(w.refunds * 100) / 100,\n      net_revenue: Math.round(w.net_revenue * 100) / 100,\n      expected_deposit: Math.round(w.net_revenue * (1 - feeRate) * 100) / 100,\n      fee_rate: feeRate,\n      order_count: w.order_count,\n    },\n  }));\n};\n\nconst paypal = aggregate('paypal', 0.034);   // PayPal ~3.4%\nconst klarna = aggregate('klarna', 0.055);   // Klarna BNPL ~5.5%\n\nreturn [...paypal, ...klarna]\n  .sort((a, b) => {\n    if (a.json.gateway !== b.json.gateway) return a.json.gateway.localeCompare(b.json.gateway);\n    return a.json.week_ending.localeCompare(b.json.week_ending);\n  });"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        -528
+      ],
+      "id": "04625596-8d7b-4b6b-b225-358642f2cdd4",
+      "name": "Aggregate PayPal & Klarna Weekly"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aggregate Stripe USD transactions by deposit date (T+2 from created)\n// This is what Mercury's daily SHOPIFY PAYMENTS deposits represent\nconst txns = $input.all();\nconst daily = {};\n\ntxns.forEach(item => {\n  const t = item.json;\n  if ((t.currency || '').toUpperCase() !== 'USD') return; // GBP order excluded\n\n  const created = new Date(t.created_at);\n  const deposit = new Date(created);\n  deposit.setDate(created.getDate() + 2);\n  const depositDate = deposit.toISOString().split('T')[0];\n\n  if (!daily[depositDate]) {\n    daily[depositDate] = {\n      deposit_date: depositDate,\n      charge_count: 0,\n      refund_count: 0,\n      dispute_count: 0,\n      gross: 0,\n      fees: 0,\n      net: 0,\n    };\n  }\n\n  daily[depositDate].gross += t.amount;\n  daily[depositDate].fees += t.fee;\n  daily[depositDate].net += t.net;\n\n  if (t.is_charge) daily[depositDate].charge_count += 1;\n  else if (t.is_refund) daily[depositDate].refund_count += 1;\n  else if (t.is_dispute) daily[depositDate].dispute_count += 1;\n});\n\nreturn Object.values(daily)\n  .sort((a, b) => a.deposit_date.localeCompare(b.deposit_date))\n  .map(d => ({\n    json: {\n      source: 'shopify_payments_daily',\n      deposit_date: d.deposit_date,\n      charge_count: d.charge_count,\n      refund_count: d.refund_count,\n      dispute_count: d.dispute_count,\n      gross: Math.round(d.gross * 100) / 100,\n      fees: Math.round(d.fees * 100) / 100,\n      net: Math.round(d.net * 100) / 100,\n    },\n  }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        272
+      ],
+      "id": "1e61877b-60d6-4c31-9199-8a56fa1af575",
+      "name": "Aggregate Shopify Payments Daily"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Multi-input Code nodes in n8n fire once per upstream branch.\n// Gate to the run that contains Mercury, ignore others, pull aggregates via $() refs.\n\nconst inputItems = $input.all();\nconst hasMercury = inputItems.some(i => i.json.source === 'mercury');\nif (!hasMercury) return [];\n\n// Pull all sources via explicit references — they're cached after their nodes execute\nconst mercuryRows  = $('Normalize Mercury').all();\nconst shopifyDaily = $('Aggregate Shopify Payments Daily').all();\nconst amazonAgg    = $('Aggregate Amazon Settlements').all();\nconst faireAgg     = $('Aggregate Faire Weekly').all();\nconst paypalKlarna = $('Aggregate PayPal & Klarna Weekly').all();\nconst paypalAgg = paypalKlarna.filter(i => i.json.source === 'paypal_aggregated');\nconst klarnaAgg = paypalKlarna.filter(i => i.json.source === 'klarna_aggregated');\n\nconst classify = (actual, expected) => {\n  if (expected === null || expected === undefined) return { status: 'UNMATCHED', variance: null, variance_pct: null };\n  const variance = actual - expected;\n  const absVar = Math.abs(variance);\n  const variancePct = expected !== 0 ? Math.abs(variance / expected) : 0;\n  if (absVar < 0.50) return { status: 'MATCHED', variance, variance_pct: variancePct };\n  if (variancePct < 0.005) return { status: 'PARTIAL', variance, variance_pct: variancePct };\n  return { status: 'DISCREPANCY', variance, variance_pct: variancePct };\n};\n\nconst findWeekly = (depositDate, aggregates, amountField) => {\n  const dd = new Date(depositDate);\n  const candidate = aggregates\n    .map(a => ({ ...a.json, _diff: dd - new Date(a.json.week_ending) }))\n    .filter(a => a._diff >= 0 && a._diff <= 7 * 86400000)\n    .sort((a, b) => a._diff - b._diff)[0];\n  return candidate ? { amount: candidate[amountField], id: candidate.week_ending } : null;\n};\n\nreturn mercuryRows.map(item => {\n  const m = item.json;\n  let expectedAmount = null;\n  let matchedSourceId = null;\n  let matchedSourceType = null;\n  let matchResult = { status: 'NOT_RECONCILED', variance: null, variance_pct: null };\n\n  if (m.is_deposit) {\n    if (m.channel === 'shopify') {\n      const match = shopifyDaily.find(s => s.json.deposit_date === m.posted_at);\n      if (match) {\n        expectedAmount = match.json.net;\n        matchedSourceId = match.json.deposit_date;\n        matchedSourceType = 'shopify_payments_daily';\n      }\n    } else if (m.channel === 'amazon') {\n      const match = amazonAgg.find(a => a.json.deposit_date === m.posted_at);\n      if (match) {\n        expectedAmount = match.json.total_net;\n        matchedSourceId = match.json.settlement_id;\n        matchedSourceType = 'amazon_settlement';\n      }\n    } else if (m.channel === 'faire') {\n      const found = findWeekly(m.posted_at, faireAgg, 'net_payout');\n      if (found) { expectedAmount = found.amount; matchedSourceId = found.id; matchedSourceType = 'faire_weekly'; }\n    } else if (m.channel === 'paypal') {\n      const found = findWeekly(m.posted_at, paypalAgg, 'expected_deposit');\n      if (found) { expectedAmount = found.amount; matchedSourceId = found.id; matchedSourceType = 'paypal_weekly'; }\n    } else if (m.channel === 'klarna') {\n      const found = findWeekly(m.posted_at, klarnaAgg, 'expected_deposit');\n      if (found) { expectedAmount = found.amount; matchedSourceId = found.id; matchedSourceType = 'klarna_weekly'; }\n    } else if (m.channel === 'wholesale_direct') {\n      expectedAmount = m.amount;\n      matchedSourceType = 'wholesale_invoice';\n    }\n    matchResult = classify(m.amount, expectedAmount);\n  }\n\n  return {\n    json: {\n      ...m,\n      match_status: matchResult.status,\n      expected_amount: expectedAmount !== null ? Math.round(expectedAmount * 100) / 100 : null,\n      actual_amount: m.amount,\n      variance: matchResult.variance !== null ? Math.round(matchResult.variance * 100) / 100 : null,\n      variance_pct: matchResult.variance_pct !== null ? Math.round(matchResult.variance_pct * 10000) / 100 : null,\n      matched_source_id: matchedSourceId,\n      matched_source_type: matchedSourceType,\n    },\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        848,
+        720
+      ],
+      "id": "6dc56495-4d7a-4c7f-a97c-d3ab4320b5a1",
+      "name": "Reconcile Mercury vs Sources"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Detect anomalies across all sources\n// Pulls reconciled rows + cross-period candidates + FX cases + chargebacks\nconst inputItems = $input.all();\nconst hasReconciled = inputItems.some(i => 'match_status' in i.json);\nif (!hasReconciled) return [];\n\nconst reconciled = $('Reconcile Mercury vs Sources').all();\nconst amazonAgg = $('Aggregate Amazon Settlements').all();\nconst shopifyOrders = $('Normalize Shopify Orders').all();\nconst stripeTxns = $('Normalize Stripe').all();\n\nconst anomalies = [];\n\n// 1. Mercury reconciliation discrepancies (already detected; we just classify severity)\nreconciled.forEach(item => {\n  const r = item.json;\n  if (r.match_status === 'DISCREPANCY' || r.match_status === 'UNMATCHED') {\n    const varAbs = Math.abs(r.variance || 0);\n    const varPct = r.variance_pct || 0;\n    let severity = 'low';\n    if (varAbs > 1000 || varPct > 50) severity = 'high';\n    else if (varAbs > 200 || varPct > 10) severity = 'medium';\n\n    let recommendation = 'Investigate source data for missing or duplicate transactions.';\n    if (r.channel === 'faire') {\n      recommendation = 'Faire pays on delivery date, not order date. Use Faire payout report as source of truth, not derived weekly aggregates.';\n    } else if (r.channel === 'paypal' || r.channel === 'klarna') {\n      recommendation = `${r.channel.toUpperCase()} batch timing is naturally lumpy. Verify against ${r.channel} settlement export and adjust expected calculation.`;\n    }\n\n    anomalies.push({\n      anomaly_id: `MERCURY_${r.transaction_id}`,\n      anomaly_type: r.match_status === 'UNMATCHED' ? 'unmatched_deposit' : 'amount_variance',\n      severity,\n      date: r.posted_at,\n      channel: r.channel,\n      counterparty: r.counterparty,\n      actual: r.amount,\n      expected: r.expected_amount,\n      variance: r.variance,\n      variance_pct: r.variance_pct,\n      description: r.description,\n      recommendation,\n    });\n  }\n});\n\n// 2. Cross-period fees (Amazon settlement with deposit_date outside reconciliation period)\namazonAgg.forEach(item => {\n  const s = item.json;\n  const depositMonth = (s.deposit_date || '').substring(0, 7);\n  if (depositMonth !== '2026-01' && (s.fba_long_term_storage !== 0 || s.fba_storage_fee !== 0)) {\n    const feeAmount = (s.fba_long_term_storage || 0) + (s.fba_storage_fee || 0);\n    anomalies.push({\n      anomaly_id: `AMZ_${s.settlement_id}_CROSS_PERIOD`,\n      anomaly_type: 'cross_period_fee',\n      severity: 'high',\n      date: s.settlement_end,\n      channel: 'amazon',\n      counterparty: 'AMAZON SELLER',\n      actual: feeAmount,\n      expected: null,\n      variance: null,\n      variance_pct: null,\n      description: `Long-term storage fee $${Math.abs(feeAmount).toFixed(2)} on settlement ${s.settlement_id} (deposit ${s.deposit_date}) relates to Q4 2025 inventory`,\n      recommendation: `Accrue $${Math.abs(feeAmount).toFixed(2)} back to Q4 2025. Journal entry: DR FBA Long-Term Storage Q4 2025, CR Accrued Expenses. Reverse the accrual when settlement deposits in Feb.`,\n    });\n  }\n});\n\n// 3. Multi-currency orders (need FX revaluation entry)\nshopifyOrders.forEach(item => {\n  const o = item.json;\n  if (o.currency !== 'USD' && parseFloat(o.total) > 0) {\n    anomalies.push({\n      anomaly_id: `FX_${o.transaction_id}`,\n      anomaly_type: 'multi_currency',\n      severity: 'medium',\n      date: o.date,\n      channel: 'shopify',\n      counterparty: `${o.transaction_name} (${o.shipping_country})`,\n      actual: o.total,\n      expected: null,\n      variance: null,\n      variance_pct: null,\n      description: `Order ${o.transaction_name} in ${o.currency} — needs FX revaluation between transaction and deposit dates`,\n      recommendation: `Apply ${o.currency}/USD rate at transaction date for revenue recognition, and at deposit settlement date for cash. Difference posts to FX Gain/Loss.`,\n    });\n  }\n});\n\n// 4. Chargebacks (lost disputes — revenue reversal + fee expense)\nconst chargebacks = {};\nstripeTxns.forEach(item => {\n  const t = item.json;\n  if (t.is_lost_dispute || (t.type === 'adjustment' && t.status === 'lost')) {\n    if (!chargebacks[t.shopify_order_id]) {\n      chargebacks[t.shopify_order_id] = {\n        order_id: t.shopify_order_id,\n        order_name: t.shopify_order_name,\n        date: t.date,\n        amount: 0,\n        fees: 0,\n      };\n    }\n    chargebacks[t.shopify_order_id].amount += Math.abs(t.amount);\n    chargebacks[t.shopify_order_id].fees += t.fee || 0;\n  }\n});\n\nObject.values(chargebacks).forEach(cb => {\n  anomalies.push({\n    anomaly_id: `CB_${cb.order_id}`,\n    anomaly_type: 'chargeback',\n    severity: 'high',\n    date: cb.date,\n    channel: 'shopify',\n    counterparty: cb.order_name,\n    actual: -(cb.amount + cb.fees),\n    expected: null,\n    variance: null,\n    variance_pct: null,\n    description: `Chargeback dispute on ${cb.order_name}: $${cb.amount.toFixed(2)} withdrawn + $${cb.fees.toFixed(2)} dispute fee`,\n    recommendation: `Reverse revenue: DR Chargebacks (revenue contra) $${cb.amount.toFixed(2)}, DR Chargeback Fees $${cb.fees.toFixed(2)}, CR Cash $${(cb.amount + cb.fees).toFixed(2)}.`,\n  });\n});\n\n// Sort by severity, then by date\nconst severityOrder = { high: 0, medium: 1, low: 2 };\nanomalies.sort((a, b) => {\n  const s = severityOrder[a.severity] - severityOrder[b.severity];\n  if (s !== 0) return s;\n  return (a.date || '').localeCompare(b.date || '');\n});\n\nreturn anomalies.map(a => ({ json: a }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1136,
+        16
+      ],
+      "id": "188c463b-e5d5-4c31-9aae-c58785440679",
+      "name": "Detect Anomalies"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate journal entry candidates for posting to QuickBooks\n// All entries are guaranteed to balance (debits = credits)\n\nconst inputItems = $input.all();\nconst hasMercury = inputItems.some(i => i.json.source === 'mercury' && 'match_status' in i.json);\nif (!hasMercury) return [];\n\n// Safe $() that returns [] instead of throwing\nconst tryAll = (name) => {\n  try {\n    return $(name).all();\n  } catch (e) {\n    return [];\n  }\n};\n\nconst shopifyDaily = tryAll('Aggregate Shopify Payments Daily');\nconst amazonAgg    = tryAll('Aggregate Amazon Settlements');\nconst faireAgg     = tryAll('Aggregate Faire Weekly');\nconst paypalKlarna = tryAll('Aggregate PayPal & Klarna Weekly');\n\nif (!shopifyDaily.length && !amazonAgg.length && !faireAgg.length && !paypalKlarna.length) {\n  return [{ json: { warning: 'No aggregates accessible. Run Execute Workflow (bottom red button) to populate.' } }];\n}\n\n// Helper: build a journal entry with cleaned/rounded lines + balance check\nconst buildJE = (id, date, description, lines) => {\n  const cleaned = lines\n    .filter(l => Math.abs(l.debit || 0) > 0.005 || Math.abs(l.credit || 0) > 0.005)\n    .map(l => ({\n      account: l.account,\n      debit: Math.round((l.debit || 0) * 100) / 100,\n      credit: Math.round((l.credit || 0) * 100) / 100,\n    }));\n  const totalDebits = cleaned.reduce((s, l) => s + l.debit, 0);\n  const totalCredits = cleaned.reduce((s, l) => s + l.credit, 0);\n  return {\n    je_id: id,\n    je_date: date,\n    description,\n    lines: cleaned,\n    total_debits: Math.round(totalDebits * 100) / 100,\n    total_credits: Math.round(totalCredits * 100) / 100,\n    balanced: Math.abs(totalDebits - totalCredits) < 0.01,\n  };\n};\n\n// Helper: add a balancing line if debits ≠ credits\nconst balanceLines = (lines, account) => {\n  const totalD = lines.reduce((s, l) => s + (l.debit > 0 ? l.debit : 0), 0);\n  const totalC = lines.reduce((s, l) => s + (l.credit > 0 ? l.credit : 0), 0);\n  const variance = totalD - totalC;\n  if (Math.abs(variance) > 0.01) {\n    if (variance > 0) {\n      lines.push({ account, credit: variance });\n    } else {\n      lines.push({ account, debit: -variance });\n    }\n  }\n  return lines;\n};\n\nconst journalEntries = [];\n\n// Shopify Payments — daily settlements (with refund fee retention)\nshopifyDaily.forEach(item => {\n  const d = item.json;\n  if (d.net <= 0) return;\n  const lines = balanceLines(\n    [\n      { account: '1000 - Cash (Mercury)', debit: d.net },\n      { account: '5100 - Stripe Processing Fees', debit: d.fees },\n      { account: '4000 - Revenue - Shopify DTC', credit: d.gross },\n    ],\n    '5101 - Stripe Refund Fee Retention'\n  );\n  journalEntries.push(buildJE(\n    `JE-SHOPIFY-${d.deposit_date}`,\n    d.deposit_date,\n    `Shopify Payments daily settlement ${d.deposit_date}`,\n    lines\n  ));\n});\n\n// Amazon — bi-weekly settlements (skip the cross-period anomaly)\namazonAgg.forEach(item => {\n  const s = item.json;\n  if (s.settlement_id === 'SET-2026-02-11') return;\n  const lines = balanceLines(\n    [\n      { account: '1000 - Cash (Mercury)', debit: s.total_net },\n      { account: '5200 - Amazon Marketplace Commission', debit: -s.marketplace_commission },\n      { account: '5210 - FBA Fulfillment Fees', debit: -s.fba_fulfillment_fee },\n      { account: '5220 - FBA Storage Fees', debit: -s.fba_storage_fee },\n      { account: '6100 - Advertising - Amazon Sponsored Products', debit: -s.ad_spend },\n      { account: '4015 - Amazon Refunds (contra revenue)', debit: -s.refund_principal },\n      { account: '5215 - Amazon Refund Commission Retention', debit: s.refund_commission },\n      { account: '4010 - Revenue - Amazon FBA', credit: s.revenue },\n      { account: '2100 - Sales Tax Payable', credit: s.sales_tax },\n    ],\n    '4099 - Marketplace Settlement Rounding'\n  );\n  journalEntries.push(buildJE(\n    `JE-AMAZON-${s.settlement_id}`,\n    s.deposit_date,\n    `Amazon settlement ${s.settlement_id} (${s.settlement_start} to ${s.settlement_end})`,\n    lines\n  ));\n});\n\n// Faire — weekly wholesale payouts\nfaireAgg.forEach(item => {\n  const f = item.json;\n  if (f.net_payout <= 0) return;\n  const lines = balanceLines(\n    [\n      { account: '1000 - Cash (Mercury)', debit: f.net_payout },\n      { account: '5300 - Faire Marketplace Commission', debit: f.total_commission },\n      { account: '4020 - Revenue - Wholesale (Faire)', credit: f.gross_wholesale },\n    ],\n    '4099 - Marketplace Settlement Rounding'\n  );\n  journalEntries.push(buildJE(\n    `JE-FAIRE-${f.week_ending}`,\n    f.week_ending,\n    `Faire wholesale week ending ${f.week_ending}`,\n    lines\n  ));\n});\n\n// PayPal & Klarna — weekly settlements\npaypalKlarna.forEach(item => {\n  const pk = item.json;\n  if (pk.net_revenue <= 0) return;\n  const expenseAcct = pk.gateway === 'paypal'\n    ? '5110 - PayPal Processing Fees'\n    : '5120 - Klarna Processing Fees';\n  const revAcct = pk.gateway === 'paypal'\n    ? '4001 - Revenue - Shopify DTC (PayPal)'\n    : '4002 - Revenue - Shopify DTC (Klarna)';\n  const fees = pk.net_revenue - pk.expected_deposit;\n  const lines = balanceLines(\n    [\n      { account: '1000 - Cash (Mercury)', debit: pk.expected_deposit },\n      { account: expenseAcct, debit: fees },\n      { account: revAcct, credit: pk.net_revenue },\n    ],\n    '4099 - Marketplace Settlement Rounding'\n  );\n  journalEntries.push(buildJE(\n    `JE-${pk.gateway.toUpperCase()}-${pk.week_ending}`,\n    pk.week_ending,\n    `${pk.gateway === 'paypal' ? 'PayPal' : 'Klarna'} weekly settlement w/e ${pk.week_ending}`,\n    lines\n  ));\n});\n\n// Sort chronologically and emit\njournalEntries.sort((a, b) => a.je_date.localeCompare(b.je_date));\nreturn journalEntries.map(je => ({ json: je }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1312,
+        1072
+      ],
+      "id": "da47d390-bd96-481e-a592-110c5bb18898",
+      "name": "Generate Journal Entries"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build the Slack-ready summary message — no dependency on Generate Journal Entries\nconst inputItems = $input.all();\nif (inputItems.length === 0) return [];\n\nconst reconciled    = $('Reconcile Mercury vs Sources').all();\nconst anomalies     = $('Detect Anomalies').all();\nconst shopifyDaily  = $('Aggregate Shopify Payments Daily').all();\nconst amazonAgg     = $('Aggregate Amazon Settlements').all();\nconst faireAgg      = $('Aggregate Faire Weekly').all();\nconst paypalKlarna  = $('Aggregate PayPal & Klarna Weekly').all();\n\nconst count = (arr, fn) => arr.filter(i => fn(i.json)).length;\nconst sum = (arr, key) => arr.reduce((s, i) => s + (i.json[key] || 0), 0);\n\n// JE count computed directly from aggregates\nconst jeCount = count(shopifyDaily, d => d.net > 0)\n  + count(amazonAgg, s => s.settlement_id !== 'SET-2026-02-11')\n  + count(faireAgg, f => f.net_payout > 0)\n  + count(paypalKlarna, pk => pk.net_revenue > 0);\n\nconst totalMercury = reconciled.length;\nconst matched = count(reconciled, r => r.match_status === 'MATCHED');\nconst discrepancy = count(reconciled, r => r.match_status === 'DISCREPANCY' || r.match_status === 'PARTIAL');\nconst notReconciled = count(reconciled, r => r.match_status === 'NOT_RECONCILED');\n\nconst highSeverity = count(anomalies, a => a.severity === 'high');\nconst mediumSeverity = count(anomalies, a => a.severity === 'medium');\nconst lowSeverity = count(anomalies, a => a.severity === 'low');\nconst crossPeriod = count(anomalies, a => a.anomaly_type === 'cross_period_fee');\nconst chargebacks = count(anomalies, a => a.anomaly_type === 'chargeback');\nconst multiCurrency = count(anomalies, a => a.anomaly_type === 'multi_currency');\n\nconst shopifyRev = sum(shopifyDaily, 'gross');\nconst amazonRev = sum(amazonAgg, 'revenue');\nconst faireRev = sum(faireAgg, 'gross_wholesale');\nconst paypalRev = paypalKlarna.filter(i => i.json.gateway === 'paypal').reduce((s, i) => s + (i.json.gross_revenue || 0), 0);\nconst klarnaRev = paypalKlarna.filter(i => i.json.gateway === 'klarna').reduce((s, i) => s + (i.json.gross_revenue || 0), 0);\nconst totalRev = shopifyRev + amazonRev + faireRev + paypalRev + klarnaRev;\n\nconst fmt = n => '$' + Math.round(n).toLocaleString('en-US');\n\nconst summary = `:receipt: *Sample Brand — January 2026 Reconciliation Complete*\n\n:bar_chart: *Volume*\n- ${totalMercury} bank transactions processed\n- ${jeCount} journal entries ready for QuickBooks\n- ${fmt(totalRev)} gross revenue (Shopify ${fmt(shopifyRev)} / Amazon ${fmt(amazonRev)} / Faire ${fmt(faireRev)} / PayPal ${fmt(paypalRev)} / Klarna ${fmt(klarnaRev)})\n\n:white_check_mark: *Reconciliation*\n- ${matched} matched cleanly (${Math.round(matched / totalMercury * 100)}%)\n- ${discrepancy} flagged for review\n- ${notReconciled} expenses passed through to GL\n\n:warning: *${anomalies.length} anomalies needing review*\n- ${highSeverity} HIGH${crossPeriod ? ` — includes ${crossPeriod} cross-period fee (accrue back to Q4 2025)` : ''}${chargebacks ? `\\n• ${chargebacks} chargeback dispute — reverse revenue + post fee` : ''}\n- ${mediumSeverity} MEDIUM${multiCurrency ? ` — includes ${multiCurrency} multi-currency order needing FX revaluation` : ''}\n- ${lowSeverity} LOW\n\n:hourglass_flowing_sand: *Estimated bookkeeper time saved: ~28 hours*\nPreviously: ~30 hrs/month manual reconciliation. Now: ~2 hrs reviewing the flagged items above.\n\n:file_folder: *Outputs in /files/sample/outputs/*\n- journal_entries.csv\n- reconciliation_report.csv\n- discrepancies.csv`;\n\nreturn [{\n  json: {\n    summary_text: summary,\n    stats: {\n      total_mercury_transactions: totalMercury,\n      matched, discrepancy, not_reconciled: notReconciled,\n      anomalies_total: anomalies.length,\n      anomalies_high: highSeverity, anomalies_medium: mediumSeverity, anomalies_low: lowSeverity,\n      cross_period_fees: crossPeriod, chargebacks, multi_currency: multiCurrency,\n      journal_entries_count: jeCount,\n      total_revenue: Math.round(totalRev * 100) / 100,\n    },\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1536,
+        144
+      ],
+      "id": "37a165ec-0434-419c-862c-872895094fc6",
+      "name": "Generate Summary"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Per-SKU revenue, COGS, gross margin, and revenue share\n// Input: Normalize Shopify Line Items (4,903 items)\n// Output: 15 SKUs ranked by revenue\n\nconst lineItems = $input.all();\n\nconst skuStats = {};\n\nlineItems.forEach(item => {\n  const li = item.json;\n  const sku = li.sku;\n  if (!skuStats[sku]) {\n    skuStats[sku] = {\n      sku,\n      product_title: li.product_title,\n      units_sold: 0,\n      revenue: 0,\n      cogs: 0,\n      orders_with_sku: new Set(),\n    };\n  }\n  skuStats[sku].units_sold += li.quantity;\n  skuStats[sku].revenue += li.line_total;\n  skuStats[sku].cogs += li.line_cogs;\n  skuStats[sku].orders_with_sku.add(li.order_id);\n});\n\nconst totalRevenue = Object.values(skuStats).reduce((s, sk) => s + sk.revenue, 0);\n\nreturn Object.values(skuStats)\n  .map(s => {\n    const grossMargin = s.revenue - s.cogs;\n    const marginPct = s.revenue > 0 ? grossMargin / s.revenue : 0;\n    const revenueSharePct = totalRevenue > 0 ? s.revenue / totalRevenue : 0;\n    return {\n      sku: s.sku,\n      product_title: s.product_title,\n      units_sold: s.units_sold,\n      orders_containing: s.orders_with_sku.size,\n      revenue: Math.round(s.revenue * 100) / 100,\n      cogs: Math.round(s.cogs * 100) / 100,\n      gross_margin: Math.round(grossMargin * 100) / 100,\n      margin_pct: Math.round(marginPct * 10000) / 100,\n      revenue_share_pct: Math.round(revenueSharePct * 10000) / 100,\n      avg_unit_price: s.units_sold > 0 ? Math.round(s.revenue / s.units_sold * 100) / 100 : 0,\n    };\n  })\n  .sort((a, b) => b.revenue - a.revenue)\n  .map(s => ({ json: s }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        1472
+      ],
+      "id": "4dde8ab8-2bdb-487d-86e6-ab3ed4719d08",
+      "name": "SKU Margin Report"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1584,
+        -112
+      ],
+      "id": "69275173-5e48-46d6-8ac2-994c50ac6fb3",
+      "name": "Anomalies"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1616,
+        1072
+      ],
+      "id": "bcaf352c-ba53-402b-8c32-74c3b8664732",
+      "name": "Journal Entries"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        432,
+        1472
+      ],
+      "id": "f40b16e0-8926-4ef6-ab8a-0988af8c0928",
+      "name": "Margin Report"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/files/data/sku_margin_report.csv",
+        "options": {
+          "append": false
+        }
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        640,
+        1472
+      ],
+      "id": "710cde4e-fefb-4332-80b3-eae8df339ed2",
+      "name": "Margin Report CSV"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/files/data/journal_entries.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        1904,
+        1072
+      ],
+      "id": "ce27d39f-9421-4f9c-b8a9-8c2e39d88e88",
+      "name": "Journal Entries CSV "
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/files/data/discrepancies.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        1792,
+        -112
+      ],
+      "id": "b6998e38-4bac-4f65-a459-12f94a186c15",
+      "name": "Anomalies CSV"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/files/data/reconciliation_report.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        1760,
+        592
+      ],
+      "id": "653b4b5f-23b5-47da-a467-d734f81a0540",
+      "name": "Reconciliation Report CSV"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1552,
+        592
+      ],
+      "id": "3e2d2abd-70c0-4cea-897a-34660801a6a6",
+      "name": "Reconciliation Report"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Convert the Generate Summary output into a markdown file\nconst item = $input.first();\nconst text = item.json.summary_text || '';\n\nreturn [{\n  json: { filename: 'summary.md' },\n  binary: {\n    data: {\n      data: Buffer.from(text, 'utf-8').toString('base64'),\n      mimeType: 'text/markdown',\n      fileName: 'summary.md',\n    },\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1744,
+        144
+      ],
+      "id": "ed1d5950-3b8e-42e5-afce-fcbf65be88cd",
+      "name": "Summary to Markdown"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Gate: only forward the run that has the full reconciled dataset.\n// Reconcile fires multiple times due to multi-input; most runs return empty\n// or small batches. Only the run with >5 items is the real data.\nconst items = $input.all();\nif (items.length < 5) return [];\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1328,
+        592
+      ],
+      "id": "255dfd78-5d02-4f5f-9438-5f7177e0f72d",
+      "name": "Gate Reconciliation Run"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/files/data/summary.md",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        1952,
+        144
+      ],
+      "id": "a0682ce8-a23a-4f9c-bfe7-f179b9e60309",
+      "name": "Write Summary MD"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read Shopify CSV",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read Shopify Line Items CSV",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read Stripe Transactions CSV",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read Amazon Settlements CSV",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read  Faire Wholesale CSV",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read  Mercury Bank CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Shopify CSV": {
+      "main": [
+        [
+          {
+            "node": "Shopify Orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Shopify Line Items CSV": {
+      "main": [
+        [
+          {
+            "node": "Shopify Line Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Stripe Transactions CSV": {
+      "main": [
+        [
+          {
+            "node": "Stripe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Amazon Settlements CSV": {
+      "main": [
+        [
+          {
+            "node": "Amazon",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read  Faire Wholesale CSV": {
+      "main": [
+        [
+          {
+            "node": "Faire",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read  Mercury Bank CSV": {
+      "main": [
+        [
+          {
+            "node": "Mercury",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shopify Orders": {
+      "main": [
+        [
+          {
+            "node": "Normalize Shopify Orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shopify Line Items": {
+      "main": [
+        [
+          {
+            "node": "Normalize Shopify Line Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stripe": {
+      "main": [
+        [
+          {
+            "node": "Normalize Stripe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Amazon": {
+      "main": [
+        [
+          {
+            "node": "Normalize Amazon",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Faire": {
+      "main": [
+        [
+          {
+            "node": "Normalize Faire",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mercury": {
+      "main": [
+        [
+          {
+            "node": "Normalize Mercury",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Shopify Orders": {
+      "main": [
+        [
+          {
+            "node": "Enrich Shopify with Stripe",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Aggregate PayPal & Klarna Weekly",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Stripe": {
+      "main": [
+        [
+          {
+            "node": "Enrich Shopify with Stripe",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Aggregate Shopify Payments Daily",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Detect Anomalies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Amazon": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Amazon Settlements",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Faire": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Faire Weekly",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Mercury": {
+      "main": [
+        [
+          {
+            "node": "Reconcile Mercury vs Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Shopify Payments Daily": {
+      "main": [
+        [
+          {
+            "node": "Reconcile Mercury vs Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Amazon Settlements": {
+      "main": [
+        [
+          {
+            "node": "Reconcile Mercury vs Sources",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Detect Anomalies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Faire Weekly": {
+      "main": [
+        [
+          {
+            "node": "Reconcile Mercury vs Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate PayPal & Klarna Weekly": {
+      "main": [
+        [
+          {
+            "node": "Reconcile Mercury vs Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reconcile Mercury vs Sources": {
+      "main": [
+        [
+          {
+            "node": "Detect Anomalies",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate Journal Entries",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Gate Reconciliation Run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detect Anomalies": {
+      "main": [
+        [
+          {
+            "node": "Generate Summary",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Anomalies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Journal Entries": {
+      "main": [
+        [
+          {
+            "node": "Journal Entries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrich Shopify with Stripe": {
+      "main": [
+        [
+          {
+            "node": "Detect Anomalies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Summary": {
+      "main": [
+        [
+          {
+            "node": "Summary to Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Shopify Line Items": {
+      "main": [
+        [
+          {
+            "node": "SKU Margin Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SKU Margin Report": {
+      "main": [
+        [
+          {
+            "node": "Margin Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anomalies": {
+      "main": [
+        [
+          {
+            "node": "Anomalies CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Journal Entries": {
+      "main": [
+        [
+          {
+            "node": "Journal Entries CSV ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Margin Report": {
+      "main": [
+        [
+          {
+            "node": "Margin Report CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reconciliation Report": {
+      "main": [
+        [
+          {
+            "node": "Reconciliation Report CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reconciliation Report CSV": {
+      "main": [
+        []
+      ]
+    },
+    "Gate Reconciliation Run": {
+      "main": [
+        [
+          {
+            "node": "Reconciliation Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summary to Markdown": {
+      "main": [
+        [
+          {
+            "node": "Write Summary MD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "binaryMode": "separate"
+  }
+}
