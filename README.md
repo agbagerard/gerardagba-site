@@ -1,4 +1,4 @@
-# gerardagba.com
+# agbagerard.com
 
 Personal site / YouTube channel landing pages for Gerard Agba — n8n workflows for DTC finance.
 
@@ -39,7 +39,7 @@ gh repo create gerardagba-site --public --source=. --remote=origin --push
 - Repo → Settings → Pages → Source: **GitHub Actions**
 
 ### 3. Buy the domain
-- Porkbun → search `gerardagba.com` → buy (~$10/yr)
+- Porkbun → search `agbagerard.com` → buy (~$10/yr)
 
 ### 4. Wire DNS
 At your domain registrar, set these records pointing to GitHub:
@@ -53,7 +53,7 @@ CNAME www   gerardagba-site.<your-github-username>.github.io.
 (Replace `<your-github-username>` with yours.)
 
 ### 5. Confirm `public/CNAME`
-Already contains `gerardagba.com`. GitHub uses this to bind the domain.
+Already contains `agbagerard.com`. GitHub uses this to bind the domain.
 
 ### 6. Enable HTTPS
 Repo → Settings → Pages → check **Enforce HTTPS** (after DNS propagates, ~10 min to 1 hour).
