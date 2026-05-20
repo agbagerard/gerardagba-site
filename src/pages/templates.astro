@@ -2,18 +2,21 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import EmailCapture from "../components/EmailCapture.astro";
 
-// Each template maps to an episode. `live: false` means the episode/page isn't published yet.
+// Each item: episode number, slug, title, blurb, live status
+// For live items, downloads live at:
+//   /downloads/<slug>.zip
+//   /downloads/<slug>-setup-guide.pdf
 const categories = [
   {
     name: "Revenue & Sales Reconciliation",
     blurb: "Every dollar earned tracked, verified, and moved correctly through the books.",
     items: [
-      { n: "01", slug: "multi-channel-sales-sync", title: "Multi-Channel Sales Sync", live: true },
-      { n: "02", slug: "payment-processor-audit", title: "Payment Processor Audit", live: false },
-      { n: "03", slug: "real-time-cogs-calculator", title: "Real-Time COGS Calculator", live: false },
-      { n: "04", slug: "tax-jurisdiction-tracker", title: "Tax Jurisdiction Tracker", live: false },
-      { n: "05", slug: "refund-recovery-guard", title: "Refund Recovery Guard", live: false },
-      { n: "02", slug: "amazon-fba-fee-auditor", title: "Amazon FBA Fee Auditor", live: true },
+      { n: "01", slug: "multi-channel-sales-sync", title: "Multi-Channel Sales Sync", blurb: "Reconcile Shopify, Amazon, Faire, PayPal, Klarna into one ledger.", live: true },
+      { n: "02", slug: "amazon-fba-fee-auditor", title: "Amazon FBA Fee Auditor", blurb: "Catches the $2-5K/month FBA fee errors most brands never check.", live: true },
+      { n: "03", slug: "payment-processor-audit", title: "Payment Processor Audit", blurb: "Stripe + PayPal payouts vs bank, dollar for dollar.", live: false },
+      { n: "04", slug: "real-time-cogs-calculator", title: "Real-Time COGS Calculator", live: false },
+      { n: "05", slug: "tax-jurisdiction-tracker", title: "Tax Jurisdiction Tracker", live: false },
+      { n: "06", slug: "refund-recovery-guard", title: "Refund Recovery Guard", live: false },
       { n: "07", slug: "subscription-mrr-tracker", title: "Subscription MRR Tracker", live: false },
       { n: "08", slug: "gift-card-liability-logger", title: "Gift Card Liability Logger", live: false },
       { n: "09", slug: "store-credit-manager", title: "Store Credit Manager", live: false },
@@ -64,16 +67,16 @@ const categories = [
 ---
 <BaseLayout
   title="Free n8n Templates · Gerard Agba"
-  description="Every free n8n workflow I've shipped. Multi-channel reconciliation, FBA fee audits, chargeback recovery, and 40+ more."
+  description="Every free n8n workflow I've shipped. Multi-channel reconciliation, FBA fee audits, chargeback recovery, and more. Direct downloads, no email gate."
 >
   <section class="max-w-5xl mx-auto px-6 pt-20 pb-12">
     <p class="text-xs uppercase tracking-widest text-[color:var(--color-accent)] mb-4">Free templates</p>
     <h1 class="text-4xl md:text-5xl font-extrabold leading-tight tracking-tight max-w-3xl">
-      Every free n8n workflow I&rsquo;ve shipped, organized by what it fixes.
+      Every n8n workflow I&rsquo;ve shipped &mdash; free, direct download, no email required.
     </h1>
     <p class="text-lg text-[color:var(--color-muted)] mt-6 max-w-2xl">
-      Each template comes with the n8n JSON, an 8-page setup guide, and a
-      5-minute Loom walkthrough. Free forever.
+      Each template comes with the n8n JSON, a 1-page setup guide, and a video walkthrough.
+      Newsletter at the bottom of the page if you want to know when a new one drops.
     </p>
   </section>
 
@@ -81,20 +84,51 @@ const categories = [
     <section class="max-w-5xl mx-auto px-6 mt-16">
       <h2 class="text-2xl md:text-3xl font-bold mb-2">{cat.name}</h2>
       <p class="text-[color:var(--color-muted)] mb-6">{cat.blurb}</p>
-      <div class="grid md:grid-cols-2 gap-3">
+      <div class="grid gap-3">
         {cat.items.map((item) => (
-          <a
-            href={item.live ? `/episodes/${item.slug}` : "#"}
-            class={`flex items-center justify-between p-4 rounded-lg border border-white/10 transition ${item.live ? "hover:border-[color:var(--color-accent)] hover:bg-white/[0.02]" : "opacity-50 cursor-not-allowed"}`}
-          >
-            <div>
-              <div class="text-xs text-[color:var(--color-muted)]">EP {item.n}</div>
-              <div class="font-medium">{item.title}</div>
+          item.live ? (
+            <div class="p-5 rounded-lg border border-white/10 bg-white/[0.02] hover:border-[color:var(--color-accent)]/40 transition">
+              <div class="flex items-start justify-between gap-4 flex-wrap">
+                <div class="min-w-0 flex-1">
+                  <div class="text-xs text-[color:var(--color-accent)] mb-1">EP {item.n}</div>
+                  <div class="font-semibold mb-1">{item.title}</div>
+                  {item.blurb && <p class="text-sm text-[color:var(--color-muted)]">{item.blurb}</p>}
+                </div>
+                <div class="flex gap-2 shrink-0 flex-wrap">
+                  <a
+                    href={`/downloads/${item.slug}.zip`}
+                    class="px-3 py-1.5 rounded-md bg-[color:var(--color-accent)] text-black text-sm font-semibold hover:opacity-90 transition whitespace-nowrap"
+                    download
+                  >
+                    Download workflow
+                  </a>
+                  <a
+                    href={`/downloads/${item.slug}-setup-guide.pdf`}
+                    class="px-3 py-1.5 rounded-md border border-white/15 hover:border-white/40 text-sm font-medium transition whitespace-nowrap"
+                  >
+                    Setup guide (PDF)
+                  </a>
+                  <a
+                    href={`/episodes/${item.slug}`}
+                    class="px-3 py-1.5 rounded-md text-[color:var(--color-muted)] hover:text-white text-sm font-medium transition whitespace-nowrap"
+                  >
+                    Watch episode →
+                  </a>
+                </div>
+              </div>
             </div>
-            <span class="text-xs text-[color:var(--color-muted)]">
-              {item.live ? "Get it →" : "Soon"}
-            </span>
-          </a>
+          ) : (
+            <div class="p-5 rounded-lg border border-white/5 opacity-50">
+              <div class="flex items-center justify-between gap-4">
+                <div class="min-w-0 flex-1">
+                  <div class="text-xs text-[color:var(--color-muted)] mb-1">EP {item.n} · COMING SOON</div>
+                  <div class="font-medium">{item.title}</div>
+                  {item.blurb && <p class="text-sm text-[color:var(--color-muted)] mt-1">{item.blurb}</p>}
+                </div>
+                <span class="text-xs text-[color:var(--color-muted)] shrink-0">Soon</span>
+              </div>
+            </div>
+          )
         ))}
       </div>
     </section>
@@ -102,8 +136,8 @@ const categories = [
 
   <section class="max-w-5xl mx-auto px-6 mt-20">
     <EmailCapture
-      heading="Get every new template free"
-      subheading="One email when a new workflow drops. Unsubscribe in one click."
+      heading="Know when the next one drops"
+      subheading="One email per new episode. Nothing else."
       tag="newsletter"
     />
   </section>

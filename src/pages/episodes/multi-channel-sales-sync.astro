@@ -76,9 +76,36 @@ import EmailCapture from "../../components/EmailCapture.astro";
     </div>
   </section>
 
-  <!-- EMAIL CAPTURE -->
+  <!-- DOWNLOADS -->
+  <section class="max-w-4xl mx-auto px-6 mt-12">
+    <div class="p-8 rounded-2xl bg-[color:var(--color-card)] border border-white/5">
+      <h3 class="text-2xl font-bold mb-3">Download the workflow</h3>
+      <p class="text-[color:var(--color-muted)] mb-6">Free. No email required.</p>
+      <div class="flex flex-wrap gap-3">
+        <a
+          href="/downloads/multi-channel-sales-sync.zip"
+          class="px-6 py-3 rounded-lg bg-[color:var(--color-accent)] text-black font-semibold hover:opacity-90 transition"
+          download
+        >
+          Workflow (ZIP) →
+        </a>
+        <a
+          href="/downloads/multi-channel-sales-sync-setup-guide.pdf"
+          class="px-6 py-3 rounded-lg border border-white/15 hover:border-white/40 transition"
+        >
+          Setup guide (PDF)
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- NEWSLETTER -->
   <section class="max-w-4xl mx-auto px-6">
-    <EmailCapture tag="ep01" />
+    <EmailCapture
+      heading="Know when the next episode drops"
+      subheading="One email per new workflow. Nothing else."
+      tag="newsletter"
+    />
   </section>
 
   <!-- ABOUT -->

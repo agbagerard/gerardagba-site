@@ -1,7 +1,7 @@
 ---
 const {
-  heading = "Get the free workflow",
-  subheading = "Drop your email. I'll send the workflow JSON, setup guide, and a 5-min Loom walkthrough.",
+  heading = "Know when the next episode drops",
+  subheading = "One email per new workflow. Nothing else.",
   tag = "newsletter",
 } = Astro.props;
 
@@ -39,8 +39,8 @@ const WORKER_URL = "https://gerardagba-beehiiv-proxy.gerardagba.workers.dev";
       type="submit"
       class="px-6 py-3 rounded-lg bg-[color:var(--color-accent)] text-black font-semibold hover:opacity-90 transition whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed"
     >
-      <span class="label">Send me the workflow →</span>
-      <span class="label-loading hidden">Sending&hellip;</span>
+      <span class="label">Subscribe →</span>
+      <span class="label-loading hidden">Subscribing&hellip;</span>
     </button>
   </form>
 
@@ -84,7 +84,7 @@ const WORKER_URL = "https://gerardagba-beehiiv-proxy.gerardagba.workers.dev";
 
         if (res.ok && data.success) {
           form.classList.add("hidden");
-          message.textContent = "Check your inbox — the workflow is on its way.";
+          message.textContent = "You're subscribed. Check your inbox for the welcome note.";
           message.classList.remove("hidden");
           message.classList.add("text-[color:var(--color-accent)]");
         } else {
