@@ -1,0 +1,472 @@
+{
+  "name": "Settle GL Reconciliation",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        400
+      ],
+      "id": "3c32c761-b4dd-4fe2-9bec-f44f8251d956",
+      "name": "When clicking 'Execute workflow'"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/data/settle_vendor_payments.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -100,
+        0
+      ],
+      "id": "e3b2b38e-f64a-4c7a-a4db-d9b2603bce25",
+      "name": "Read Settle Payments"
+    },
+    {
+      "parameters": {
+        "options": {
+          "delimiter": ",",
+          "headerRow": true
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        140,
+        0
+      ],
+      "id": "626e5e3e-416b-4a97-8f8b-565b47685a60",
+      "name": "Extract Settle Payments"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/data/settle_loan_activity.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -100,
+        200
+      ],
+      "id": "06900871-24ff-44fd-8d31-04cfc46c31c2",
+      "name": "Read Settle Loan"
+    },
+    {
+      "parameters": {
+        "options": {
+          "delimiter": ",",
+          "headerRow": true
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        140,
+        200
+      ],
+      "id": "eba1a3db-540d-493f-9641-0d7dcbed0cff",
+      "name": "Extract Settle Loan"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/data/bank_statement.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -100,
+        400
+      ],
+      "id": "9f4fdcd6-3960-4608-acdf-3481aa26b05d",
+      "name": "Read Bank"
+    },
+    {
+      "parameters": {
+        "options": {
+          "delimiter": ",",
+          "headerRow": true
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        140,
+        400
+      ],
+      "id": "6a869e16-78e2-4f9f-ad4f-a1ddef0f205a",
+      "name": "Extract Bank"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/data/shopify_orders.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -100,
+        600
+      ],
+      "id": "aa0eccb6-5fc8-4519-b46e-4f644e004468",
+      "name": "Read Shopify"
+    },
+    {
+      "parameters": {
+        "options": {
+          "delimiter": ",",
+          "headerRow": true
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        140,
+        600
+      ],
+      "id": "cf8eea0f-ba4f-44ae-aa77-f65637cd2900",
+      "name": "Extract Shopify"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/data/amazon_settlements.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -100,
+        800
+      ],
+      "id": "71a02e2a-0797-4765-9b24-d374bfa6860d",
+      "name": "Read Amazon"
+    },
+    {
+      "parameters": {
+        "options": {
+          "delimiter": ",",
+          "headerRow": true
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        140,
+        800
+      ],
+      "id": "3e0e5041-cb4b-40b7-abbd-2aadf3ed9692",
+      "name": "Extract Amazon"
+    },
+    {
+      "parameters": {
+        "jsCode": "// === Settle GL Reconciliation \u2014 Reconciliation Report ===\nconst TOL = 0.10;\nconst WINDOW_DAYS = 3;\n\nconst settle = $('Extract Settle Payments').all().map(i => i.json);\nconst bank   = $('Extract Bank').all().map(i => i.json);\n\nconst parseDate = s => new Date(s);\nconst daysBetween = (a, b) => Math.abs((a - b) / (1000 * 60 * 60 * 24));\n\nconst bankUsed = new Set();\nconst out = [];\n\nfor (const sp of settle) {\n  const spDate = parseDate(sp.payment_date);\n  const spAmt = parseFloat(sp.amount);\n  let found = null;\n  for (let i = 0; i < bank.length; i++) {\n    if (bankUsed.has(i)) continue;\n    const b = bank[i];\n    if (!String(b.description).includes('SETTLE PAYMENT')) continue;\n    const bAmt = -parseFloat(b.amount);\n    const bDate = parseDate(b.date);\n    if (Math.abs(bAmt - spAmt) <= TOL && daysBetween(bDate, spDate) <= WINDOW_DAYS) { found = i; break; }\n    if (daysBetween(bDate, spDate) <= 1 && Math.abs(bAmt - spAmt) <= 1.0) { found = i; break; }\n  }\n  if (found !== null) {\n    bankUsed.add(found);\n    const b = bank[found];\n    const diff = Math.round((-parseFloat(b.amount) - spAmt) * 100) / 100;\n    if (Math.abs(diff) > TOL) {\n      out.push({ json: { category: 'settle_payment', status: 'AMOUNT_DIFF',\n        detail: `${sp.payment_id} settle $${spAmt.toFixed(2)} vs bank $${(-parseFloat(b.amount)).toFixed(2)}`,\n        amount: diff } });\n    } else {\n      out.push({ json: { category: 'settle_payment', status: 'MATCHED', detail: sp.payment_id, amount: spAmt } });\n    }\n  } else {\n    out.push({ json: { category: 'settle_payment', status: 'NO_BANK', detail: sp.payment_id, amount: spAmt } });\n  }\n}\n\nfor (let i = 0; i < bank.length; i++) {\n  if (bankUsed.has(i)) continue;\n  const b = bank[i];\n  const amt = parseFloat(b.amount);\n  if (amt >= 0) continue;\n  const d = String(b.description);\n  if (d.includes('SETTLE') || d.includes('SHOPIFY') || d.includes('AMAZON')) continue;\n  out.push({ json: { category: 'bank_outflow', status: 'UNMATCHED', detail: `${b.date} ${b.description}`, amount: amt } });\n}\n\nreturn out;\n",
+        "mode": "runOnceForAllItems"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        600,
+        200
+      ],
+      "id": "262338a2-e704-430c-999c-f5c99174ff83",
+      "name": "Reconciliation Logic"
+    },
+    {
+      "parameters": {
+        "jsCode": "// === Settle GL Reconciliation \u2014 Journal Entries ===\nconst settle  = $('Extract Settle Payments').all().map(i => i.json);\nconst loan    = $('Extract Settle Loan').all().map(i => i.json);\nconst bank    = $('Extract Bank').all().map(i => i.json);\nconst shopify = $('Extract Shopify').all().map(i => i.json);\nconst amazon  = $('Extract Amazon').all().map(i => i.json);\n\nconst PERIOD = '2026-04';\nconst sum = (arr, key) => arr.reduce((s, r) => s + parseFloat(r[key] || 0), 0);\nconst round = v => Math.round(v * 100) / 100;\n\nconst totalSettle    = sum(settle, 'amount');\nconst totalInterest  = sum(loan, 'interest_paid');\nconst totalPrincipal = sum(loan, 'principal_paid');\nconst shopifyCOGS    = sum(shopify, 'cogs');\nconst amazonFees     = sum(amazon, 'fees');\nconst amazonCOGS     = sum(amazon, 'cogs');\n\nconst shopifyDeposits = bank.filter(b => String(b.description).includes('SHOPIFY'))\n                            .reduce((s, b) => s + parseFloat(b.amount), 0);\nconst amazonDeposits  = bank.filter(b => String(b.description).includes('AMAZON'))\n                            .reduce((s, b) => s + parseFloat(b.amount), 0);\n\nconst je = [\n  { account: 'Inventory / COGS Capitalized', debit: round(totalSettle), credit: 0,\n    memo: `Settle-funded vendor payments (${settle.length} invoices, ${PERIOD})` },\n  { account: 'Settle Loan Payable',          debit: 0, credit: round(totalSettle),\n    memo: `Settle financing drawn (${PERIOD})` },\n  { account: 'Interest Expense - Settle',    debit: round(totalInterest), credit: 0,\n    memo: 'Monthly interest accrued' },\n  { account: 'Settle Loan Payable',          debit: round(totalPrincipal), credit: 0,\n    memo: 'Monthly principal repayment' },\n  { account: 'Bank - Operating',             debit: 0, credit: round(totalInterest + totalPrincipal),\n    memo: 'Settle sweep (interest + principal)' },\n  { account: 'Bank - Operating',             debit: round(shopifyDeposits), credit: 0,\n    memo: `Shopify payouts received (${PERIOD})` },\n  { account: 'Revenue - Shopify',            debit: 0, credit: round(shopifyDeposits),\n    memo: 'Net Shopify payout' },\n  { account: 'Bank - Operating',             debit: round(amazonDeposits), credit: 0,\n    memo: 'Amazon FBA settlements received' },\n  { account: 'Amazon Fees',                  debit: round(amazonFees), credit: 0,\n    memo: 'Amazon FBA fees absorbed' },\n  { account: 'Revenue - Amazon',             debit: 0, credit: round(amazonDeposits + amazonFees),\n    memo: 'Gross Amazon revenue' },\n  { account: 'COGS',                         debit: round(shopifyCOGS + amazonCOGS), credit: 0,\n    memo: 'Cost of goods sold across channels' },\n  { account: 'Inventory',                    debit: 0, credit: round(shopifyCOGS + amazonCOGS),\n    memo: 'Inventory consumed' },\n];\n\nconst td = round(je.reduce((s, j) => s + j.debit, 0));\nconst tc = round(je.reduce((s, j) => s + j.credit, 0));\nje.push({ account: '--- BALANCE CHECK ---', debit: td, credit: tc,\n          memo: Math.abs(td - tc) < 0.05 ? 'BALANCED' : `OUT OF BALANCE by $${(td - tc).toFixed(2)}` });\n\nreturn je.map(j => ({ json: j }));\n",
+        "mode": "runOnceForAllItems"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        600,
+        600
+      ],
+      "id": "e98c5a6d-1a4d-4bce-853a-d7482e5e82c4",
+      "name": "Journal Entries Logic"
+    },
+    {
+      "parameters": {
+        "operation": "toCsv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        200
+      ],
+      "id": "5ccf8f28-d669-4628-8aad-7c6b0865669c",
+      "name": "To CSV (Recon Report)"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/files/data/reconciliation_report.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        1140,
+        200
+      ],
+      "id": "6f12f167-d434-4213-bf9b-2d7d27e1a6cd",
+      "name": "Write Recon Report CSV"
+    },
+    {
+      "parameters": {
+        "operation": "toCsv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        600
+      ],
+      "id": "b6d04478-a0d1-483d-abf3-da1b582dbf64",
+      "name": "To CSV (Journal)"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/files/data/journal_entries.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        1140,
+        600
+      ],
+      "id": "50a1baee-b04b-442a-8b9d-630097f95562",
+      "name": "Write Journal CSV"
+    },
+    {
+      "parameters": {
+        "mode": "append",
+        "numberInputs": 5
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        400,
+        400
+      ],
+      "id": "df359bc7-c756-43a8-bfe2-128b4be3aae2",
+      "name": "Merge All Sources"
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Read Settle Payments",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read Settle Loan",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read Bank",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read Shopify",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read Amazon",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Settle Payments": {
+      "main": [
+        [
+          {
+            "node": "Extract Settle Payments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Settle Loan": {
+      "main": [
+        [
+          {
+            "node": "Extract Settle Loan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Bank": {
+      "main": [
+        [
+          {
+            "node": "Extract Bank",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Shopify": {
+      "main": [
+        [
+          {
+            "node": "Extract Shopify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Amazon": {
+      "main": [
+        [
+          {
+            "node": "Extract Amazon",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Settle Payments": {
+      "main": [
+        [
+          {
+            "node": "Merge All Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reconciliation Logic": {
+      "main": [
+        [
+          {
+            "node": "To CSV (Recon Report)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "To CSV (Recon Report)": {
+      "main": [
+        [
+          {
+            "node": "Write Recon Report CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Journal Entries Logic": {
+      "main": [
+        [
+          {
+            "node": "To CSV (Journal)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "To CSV (Journal)": {
+      "main": [
+        [
+          {
+            "node": "Write Journal CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Settle Loan": {
+      "main": [
+        [
+          {
+            "node": "Merge All Sources",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Extract Bank": {
+      "main": [
+        [
+          {
+            "node": "Merge All Sources",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Extract Shopify": {
+      "main": [
+        [
+          {
+            "node": "Merge All Sources",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Extract Amazon": {
+      "main": [
+        [
+          {
+            "node": "Merge All Sources",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "Merge All Sources": {
+      "main": [
+        [
+          {
+            "node": "Reconciliation Logic",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Journal Entries Logic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

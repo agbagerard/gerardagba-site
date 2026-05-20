@@ -1,0 +1,140 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import EmailCapture from "../../components/EmailCapture.astro";
+---
+<BaseLayout
+  title="Episode 04 — Settle GL Reconciliation · Gerard Agba"
+  description="The free n8n workflow that reconciles Settle bill pay, multi-channel revenue, and bank into balanced QBO journal entries. Built for accounting firms serving CPG/DTC clients."
+>
+  <!-- HERO -->
+  <section class="max-w-4xl mx-auto px-6 pt-20 pb-12">
+    <p class="text-xs uppercase tracking-widest text-[color:var(--color-accent)] mb-4">
+      Episode 04 · Settle GL Reconciliation
+    </p>
+    <h1 class="text-3xl md:text-5xl font-extrabold leading-[1.05] tracking-tight">
+      Reconcile Settle, multi-channel revenue, and bank into one balanced GL.
+    </h1>
+    <p class="text-lg text-[color:var(--color-muted)] mt-6 max-w-2xl">
+      Built for accounting firms with CPG/DTC clients on Settle. The workflow ingests
+      Settle vendor payments + Shopify + Amazon FBA + bank, surfaces discrepancies,
+      and outputs QBO-ready journal entries with a built-in balance check.
+    </p>
+  </section>
+
+  <!-- WHO IT'S FOR -->
+  <section class="max-w-4xl mx-auto px-6 mt-8">
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="p-6 rounded-xl bg-[color:var(--color-card)] border border-white/5">
+        <div class="text-xs text-[color:var(--color-accent)] mb-2">FOR</div>
+        <h3 class="font-semibold mb-1">Accounting firms serving CPG/DTC</h3>
+        <p class="text-sm text-[color:var(--color-muted)]">Use this as a per-client install. Saves your bookkeepers 4–8 hours/month per client on Settle reconciliation.</p>
+      </div>
+      <div class="p-6 rounded-xl bg-[color:var(--color-card)] border border-white/5">
+        <div class="text-xs text-[color:var(--color-accent)] mb-2">FOR</div>
+        <h3 class="font-semibold mb-1">In-house finance at $3–15M CPG brands</h3>
+        <p class="text-sm text-[color:var(--color-muted)]">If you're running finance for a brand on Settle + Shopify + Amazon, this is your monthly close in one workflow.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHAT IT DOES -->
+  <section class="max-w-4xl mx-auto px-6 mt-16">
+    <h2 class="text-2xl md:text-3xl font-bold mb-6">What it does</h2>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="p-6 rounded-xl bg-[color:var(--color-card)] border border-white/5">
+        <div class="text-xs text-[color:var(--color-accent)] mb-2">01</div>
+        <h3 class="font-semibold mb-1">Settle ↔ Bank reconciliation</h3>
+        <p class="text-sm text-[color:var(--color-muted)]">Matches Settle vendor payments to bank withdrawals with timing + amount tolerance. Flags amount mismatches.</p>
+      </div>
+      <div class="p-6 rounded-xl bg-[color:var(--color-card)] border border-white/5">
+        <div class="text-xs text-[color:var(--color-accent)] mb-2">02</div>
+        <h3 class="font-semibold mb-1">Unmatched outflow detection</h3>
+        <p class="text-sm text-[color:var(--color-muted)]">Surfaces manual ACH or wire payments that bypassed Settle, so they don't slip through the AP process.</p>
+      </div>
+      <div class="p-6 rounded-xl bg-[color:var(--color-card)] border border-white/5">
+        <div class="text-xs text-[color:var(--color-accent)] mb-2">03</div>
+        <h3 class="font-semibold mb-1">Multi-channel revenue ties</h3>
+        <p class="text-sm text-[color:var(--color-muted)]">Reconciles Shopify and Amazon FBA payouts against bank deposits. Captures Amazon fees as a separate expense line.</p>
+      </div>
+      <div class="p-6 rounded-xl bg-[color:var(--color-card)] border border-white/5">
+        <div class="text-xs text-[color:var(--color-accent)] mb-2">04</div>
+        <h3 class="font-semibold mb-1">Balanced QBO-ready journal entries</h3>
+        <p class="text-sm text-[color:var(--color-muted)]">12 JE lines covering AP, financing, interest, revenue, COGS. Built-in balance check row catches errors before they reach QBO.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHAT YOU GET -->
+  <section class="max-w-4xl mx-auto px-6 mt-16">
+    <h2 class="text-2xl md:text-3xl font-bold mb-6">What you get</h2>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="p-6 rounded-xl bg-[color:var(--color-card)] border border-white/5">
+        <div class="text-xs text-[color:var(--color-accent)] mb-2">01</div>
+        <h3 class="font-semibold mb-1">The n8n JSON</h3>
+        <p class="text-sm text-[color:var(--color-muted)]">18 nodes, fully wired. 5 input streams, Merge barrier, 2 Code nodes, parallel outputs.</p>
+      </div>
+      <div class="p-6 rounded-xl bg-[color:var(--color-card)] border border-white/5">
+        <div class="text-xs text-[color:var(--color-accent)] mb-2">02</div>
+        <h3 class="font-semibold mb-1">6 sample CSVs</h3>
+        <p class="text-sm text-[color:var(--color-muted)]">Realistic data for a $3.85M ARR CPG brand. Test against it before pointing at a real client.</p>
+      </div>
+      <div class="p-6 rounded-xl bg-[color:var(--color-card)] border border-white/5">
+        <div class="text-xs text-[color:var(--color-accent)] mb-2">03</div>
+        <h3 class="font-semibold mb-1">Setup guide (PDF)</h3>
+        <p class="text-sm text-[color:var(--color-muted)]">1-page quick start. Where to put files, how to swap in your client's real data.</p>
+      </div>
+      <div class="p-6 rounded-xl bg-[color:var(--color-card)] border border-white/5">
+        <div class="text-xs text-[color:var(--color-accent)] mb-2">04</div>
+        <h3 class="font-semibold mb-1">Reconciliation + JE logic</h3>
+        <p class="text-sm text-[color:var(--color-muted)]">Two Code nodes you can read, fork, and adapt. Constants at the top, clean detection rules below.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOWNLOADS -->
+  <section class="max-w-4xl mx-auto px-6 mt-12">
+    <div class="p-8 rounded-2xl bg-[color:var(--color-card)] border border-white/5">
+      <h3 class="text-2xl font-bold mb-3">Download the workflow</h3>
+      <p class="text-[color:var(--color-muted)] mb-6">Free. No email required.</p>
+      <div class="flex flex-wrap gap-3">
+        <a
+          href="/downloads/settle-gl-reconciliation.zip"
+          class="px-6 py-3 rounded-lg bg-[color:var(--color-accent)] text-black font-semibold hover:opacity-90 transition"
+          download
+        >
+          Workflow + sample data (ZIP) →
+        </a>
+        <a
+          href="/downloads/settle-gl-reconciliation-setup-guide.pdf"
+          class="px-6 py-3 rounded-lg border border-white/15 hover:border-white/40 transition"
+        >
+          Setup guide (PDF)
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- NEWSLETTER -->
+  <section class="max-w-4xl mx-auto px-6">
+    <EmailCapture
+      heading="Know when the next workflow drops"
+      subheading="One email per new episode. Built for accounting firms and finance teams."
+      tag="newsletter"
+    />
+  </section>
+
+  <!-- SOFT CTA -->
+  <section class="max-w-4xl mx-auto px-6 mt-16 mb-24">
+    <div class="p-8 rounded-2xl border border-white/10">
+      <h3 class="text-xl md:text-2xl font-bold mb-3">Want this installed for your CPG clients?</h3>
+      <p class="text-[color:var(--color-muted)] mb-5 max-w-xl">
+        For accounting firms: I install and customize this workflow per-client as a white-label
+        service. Fixed scope, 2 weeks, your bookkeepers stay in the relationship. Typical brand
+        pays for the install inside 60 days of operating time savings.
+      </p>
+      <a href="/work-with-me" class="inline-block px-6 py-3 rounded-lg bg-white text-black font-semibold hover:bg-white/90 transition">
+        Book a 20-min call →
+      </a>
+    </div>
+  </section>
+</BaseLayout>
