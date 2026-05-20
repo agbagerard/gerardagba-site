@@ -1,0 +1,238 @@
+{
+  "name": "Amazon FBA Fee Auditor",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "6f7d06dc-269f-4a83-81d7-db1da1287759",
+      "name": "When clicking \u2018Execute workflow\u2019"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/data/sample_sku_master.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        176
+      ],
+      "id": "7f284276-811f-4cec-a61e-b574666bdd3d",
+      "name": "Read SKU Master"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/data/sample_amazon_settlements_2026-01.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        -128
+      ],
+      "id": "1b35e527-8c61-4960-a0ad-8c5b1bf69abb",
+      "name": "Read Amazon Settlements"
+    },
+    {
+      "parameters": {
+        "options": {
+          "headerRow": true
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        416,
+        176
+      ],
+      "id": "0fee6b20-cd2e-4d7a-82ff-6c310d8f7567",
+      "name": "Extract SKU Master"
+    },
+    {
+      "parameters": {
+        "options": {
+          "headerRow": true
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        416,
+        -128
+      ],
+      "id": "2e04c838-2a3f-4d85-92ad-5da85ed876c6",
+      "name": "Extract Settlement"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "sku",
+              "field2": "sku"
+            }
+          ]
+        },
+        "joinMode": "enrichInput1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        624,
+        16
+      ],
+      "id": "aea80a11-a9e5-42d0-a041-a363b4f88dc2",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "// === FBA Fee Auditor \u2014 Code node ===\nconst FEE = {\n  SmallStandard:        3.22,\n  LargeStandard_12oz:   4.99,\n  LargeStandard_16oz:   5.27,\n  LargeStandard_18oz:   6.85,\n};\nconst LTS_THRESHOLD_DAYS = 271;\nconst SKU_AGE_DAYS = 180;          // demo: in production, join from inventory aging report\nconst TOLERANCE = 0.10;\n\nfunction expectedFee(weightOz, tier) {\n  if (tier === \"SmallStandard\") return FEE.SmallStandard;\n  if (tier === \"LargeStandard\") {\n    const w = parseFloat(weightOz);\n    if (w <= 12) return FEE.LargeStandard_12oz;\n    if (w <= 16) return FEE.LargeStandard_16oz;\n    return FEE.LargeStandard_18oz;\n  }\n  return null;\n}\n\nconst out = [];\n\nfor (const item of items) {\n  const r = item.json;\n  const units = parseInt(r.units, 10);\n  const amount = parseFloat(r.amount);\n  if (!r.sku || !r.size_tier) continue;\n\n  const expectedPerUnit = expectedFee(r.weight_oz, r.size_tier);\n  if (expectedPerUnit === null) continue;\n\n  // 1. Per-unit fulfillment overcharge (positive units, billed too much)\n  if (r.fee_type === \"FBAPerUnitFulfillmentFee\" && units > 0) {\n    const actualPerUnit = Math.abs(amount) / units;\n    if (actualPerUnit - expectedPerUnit > TOLERANCE) {\n      const overcharge = (actualPerUnit - expectedPerUnit) * units;\n      out.push({ json: {\n        sku: r.sku, asin: r.asin, fee_type: r.fee_type, units,\n        expected: +(expectedPerUnit * units).toFixed(2),\n        actual: +Math.abs(amount).toFixed(2),\n        overcharge: +overcharge.toFixed(2),\n        severity: overcharge > 5 ? \"HIGH\" : \"MEDIUM\",\n        evidence: `Size tier ${r.size_tier} (${r.weight_oz}oz) should be $${expectedPerUnit.toFixed(2)}/unit, billed $${actualPerUnit.toFixed(2)}/unit`,\n      }});\n    }\n  }\n\n  // 2. Refund without fulfillment fee refund (negative units, $0 fee)\n  if (r.fee_type === \"FBAPerUnitFulfillmentFee\" && units < 0 && amount === 0) {\n    const owed = expectedPerUnit * Math.abs(units);\n    out.push({ json: {\n      sku: r.sku, asin: r.asin, fee_type: r.fee_type, units,\n      expected: -+owed.toFixed(2), actual: 0,\n      overcharge: +owed.toFixed(2),\n      severity: \"HIGH\",\n      evidence: `Return processed but fulfillment fee not refunded (${Math.abs(units)} units x $${expectedPerUnit.toFixed(2)})`,\n    }});\n  }\n\n  // 3. Pick-pack fee billed on cancellation\n  if (r.order_id && r.order_id.includes(\"CANCEL\") && r.fee_type === \"FBAPerUnitFulfillmentFee\") {\n    out.push({ json: {\n      sku: r.sku, asin: r.asin, fee_type: r.fee_type, units,\n      expected: 0, actual: +Math.abs(amount).toFixed(2),\n      overcharge: +Math.abs(amount).toFixed(2),\n      severity: \"HIGH\",\n      evidence: \"Pick-pack fee billed despite cancellation (order canceled before pick)\",\n    }});\n  }\n\n  // 4. Long-term storage fee on too-new SKU\n  if (r.fee_type === \"FBALongTermStorageFee\" && SKU_AGE_DAYS < LTS_THRESHOLD_DAYS) {\n    out.push({ json: {\n      sku: r.sku, asin: r.asin, fee_type: r.fee_type, units,\n      expected: 0, actual: +Math.abs(amount).toFixed(2),\n      overcharge: +Math.abs(amount).toFixed(2),\n      severity: \"HIGH\",\n      evidence: `LTS fee billed but SKU age ${SKU_AGE_DAYS}d < threshold ${LTS_THRESHOLD_DAYS}d`,\n    }});\n  }\n}\n\nreturn out;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        16
+      ],
+      "id": "c1da2678-dd63-4eda-95f6-2676ab815a1a",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1040,
+        16
+      ],
+      "id": "e0043ced-cd71-4c63-9546-18bc238a6b64",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/files/data/discrepancies.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        1248,
+        16
+      ],
+      "id": "f65bff75-0056-4697-a7e5-2e307fb2cf8b",
+      "name": "Write discrepancies CSV"
+    }
+  ],
+  "connections": {
+    "When clicking \u2018Execute workflow\u2019": {
+      "main": [
+        [
+          {
+            "node": "Read Amazon Settlements",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read SKU Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Amazon Settlements": {
+      "main": [
+        [
+          {
+            "node": "Extract Settlement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read SKU Master": {
+      "main": [
+        [
+          {
+            "node": "Extract SKU Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Settlement": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract SKU Master": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Write discrepancies CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  }
+}
