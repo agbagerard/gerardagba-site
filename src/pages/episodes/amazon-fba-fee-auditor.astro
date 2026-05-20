@@ -1,0 +1,117 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import EmailCapture from "../../components/EmailCapture.astro";
+---
+<BaseLayout
+  title="Episode 02 — Amazon FBA Fee Auditor · Gerard Agba"
+  description="The free n8n workflow that catches misbilled Amazon FBA fees. Built with Claude on camera. Recovers $2K-$5K/month for typical DTC brands."
+>
+  <!-- HERO -->
+  <section class="max-w-4xl mx-auto px-6 pt-20 pb-12">
+    <p class="text-xs uppercase tracking-widest text-[color:var(--color-accent)] mb-4">
+      Episode 02 · Amazon FBA Fee Auditor
+    </p>
+    <h1 class="text-3xl md:text-5xl font-extrabold leading-[1.05] tracking-tight">
+      I built the n8n workflow that catches the $2K&ndash;$5K/month Amazon FBA leaks most DTC brands never check.
+    </h1>
+    <p class="text-lg text-[color:var(--color-muted)] mt-6 max-w-2xl">
+      Misclassified dimensions, weight-tier mismatches, refunds that don&rsquo;t refund the fulfillment fee,
+      long-term storage charges on items not old enough to qualify. The workflow audits all four
+      automatically, every month.
+    </p>
+  </section>
+
+  <!-- VIDEO -->
+  <section class="max-w-4xl mx-auto px-6">
+    <div class="aspect-video rounded-xl overflow-hidden border border-white/10 bg-black">
+      <iframe
+        class="w-full h-full"
+        src="https://www.youtube.com/embed/haAyx8vPpYU"
+        title="Episode 02 — Amazon FBA Fee Auditor"
+        frameborder="0"
+        allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+      ></iframe>
+    </div>
+    <p class="text-sm text-[color:var(--color-muted)] mt-3 italic">
+      One month of sample data &mdash; $97 in misbilled fees surfaced from 5 errors. Annualize for a $10M+ FBA brand: $5K&ndash;$30K/year.
+    </p>
+  </section>
+
+  <!-- THE PAIN -->
+  <section class="max-w-4xl mx-auto px-6 mt-16">
+    <h2 class="text-2xl md:text-3xl font-bold mb-6">Four fee errors this workflow catches</h2>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="p-6 rounded-xl bg-[color:var(--color-card)] border border-white/5">
+        <div class="text-xs text-[color:var(--color-accent)] mb-2">01</div>
+        <h3 class="font-semibold mb-1">Wrong size tier</h3>
+        <p class="text-sm text-[color:var(--color-muted)]">Amazon bills your Small Standard item at Large Standard rates. Per-unit overcharges compound across catalog.</p>
+      </div>
+      <div class="p-6 rounded-xl bg-[color:var(--color-card)] border border-white/5">
+        <div class="text-xs text-[color:var(--color-accent)] mb-2">02</div>
+        <h3 class="font-semibold mb-1">Weight tier overcharge</h3>
+        <p class="text-sm text-[color:var(--color-muted)]">Your 12oz item gets billed in the 16oz+ tier. Common when Amazon&rsquo;s scale data drifts from your declared weight.</p>
+      </div>
+      <div class="p-6 rounded-xl bg-[color:var(--color-card)] border border-white/5">
+        <div class="text-xs text-[color:var(--color-accent)] mb-2">03</div>
+        <h3 class="font-semibold mb-1">Refund without fee refund</h3>
+        <p class="text-sm text-[color:var(--color-muted)]">Customer returns the item. Amazon doesn&rsquo;t refund the fulfillment fee. Silent leak on every return.</p>
+      </div>
+      <div class="p-6 rounded-xl bg-[color:var(--color-card)] border border-white/5">
+        <div class="text-xs text-[color:var(--color-accent)] mb-2">04</div>
+        <h3 class="font-semibold mb-1">LTS on too-new SKUs</h3>
+        <p class="text-sm text-[color:var(--color-muted)]">Long-term storage fee billed on items below the 271-day threshold. Rare but expensive when it hits.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHAT YOU GET -->
+  <section class="max-w-4xl mx-auto px-6 mt-16">
+    <h2 class="text-2xl md:text-3xl font-bold mb-6">What you get</h2>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="p-6 rounded-xl bg-[color:var(--color-card)] border border-white/5">
+        <div class="text-xs text-[color:var(--color-accent)] mb-2">01</div>
+        <h3 class="font-semibold mb-1">The n8n JSON</h3>
+        <p class="text-sm text-[color:var(--color-muted)]">9 nodes, ready to import. Drops straight onto your existing n8n instance.</p>
+      </div>
+      <div class="p-6 rounded-xl bg-[color:var(--color-card)] border border-white/5">
+        <div class="text-xs text-[color:var(--color-accent)] mb-2">02</div>
+        <h3 class="font-semibold mb-1">Setup guide (PDF)</h3>
+        <p class="text-sm text-[color:var(--color-muted)]">1-page quick start. Where to put files, how to point at your real Amazon settlement.</p>
+      </div>
+      <div class="p-6 rounded-xl bg-[color:var(--color-card)] border border-white/5">
+        <div class="text-xs text-[color:var(--color-accent)] mb-2">03</div>
+        <h3 class="font-semibold mb-1">Sample data</h3>
+        <p class="text-sm text-[color:var(--color-muted)]">23 settlement rows + 12 SKUs with 5 intentional fee errors. Test before connecting to your live data.</p>
+      </div>
+      <div class="p-6 rounded-xl bg-[color:var(--color-card)] border border-white/5">
+        <div class="text-xs text-[color:var(--color-accent)] mb-2">04</div>
+        <h3 class="font-semibold mb-1">The audit logic</h3>
+        <p class="text-sm text-[color:var(--color-muted)]">60 lines of JavaScript that catch all four error types. Modify the fee schedule for your category.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- EMAIL CAPTURE -->
+  <section class="max-w-4xl mx-auto px-6">
+    <EmailCapture
+      heading="Get the free workflow"
+      subheading="Drop your email. I'll send the workflow JSON, setup guide, and sample data."
+      tag="ep02"
+    />
+  </section>
+
+  <!-- SOFT CTA -->
+  <section class="max-w-4xl mx-auto px-6 mt-16 mb-24">
+    <div class="p-8 rounded-2xl border border-white/10">
+      <h3 class="text-xl md:text-2xl font-bold mb-3">Want this audit running on your actual Amazon settlement data?</h3>
+      <p class="text-[color:var(--color-muted)] mb-5 max-w-xl">
+        I install and customize this workflow for DTC brands doing $2&ndash;15M ARR on FBA.
+        Fixed-scope, fixed-price, 2 weeks. Pays for itself in the first month for most brands at this scale.
+      </p>
+      <a href="/work-with-me" class="inline-block px-6 py-3 rounded-lg bg-white text-black font-semibold hover:bg-white/90 transition">
+        Book a 20-min call →
+      </a>
+    </div>
+  </section>
+</BaseLayout>
