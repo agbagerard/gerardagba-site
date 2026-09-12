@@ -13,7 +13,7 @@ const categories = [
     items: [
       { n: "01", slug: "multi-channel-sales-sync", title: "Multi-Channel Sales Sync", blurb: "Reconcile Shopify, Amazon, Faire, PayPal, Klarna into one ledger.", live: true },
       { n: "02", slug: "amazon-fba-fee-auditor", title: "Amazon FBA Fee Auditor", blurb: "Catches the $2-5K/month FBA fee errors most brands never check.", live: true },
-      { n: "03", slug: "payment-processor-audit", title: "Payment Processor Audit", blurb: "Stripe + PayPal payouts vs bank, dollar for dollar.", live: false },
+      { n: "03", slug: "payment-processor-audit", title: "Payment Processor Audit", blurb: "The five reasons Stripe and PayPal never tie to the bank.", live: true, article: true, articleAsset: "payment-processor-audit-sample-report.pdf", articleAssetLabel: "Sample report (PDF)" },
       { n: "04", slug: "settle-gl-reconciliation", title: "Settle GL Reconciliation", blurb: "Settle bill pay + multi-channel revenue + bank → balanced QBO journal entries.", live: true },
       { n: "04", slug: "real-time-cogs-calculator", title: "Real-Time COGS Calculator", live: false },
       { n: "05", slug: "tax-jurisdiction-tracker", title: "Tax Jurisdiction Tracker", live: false },
@@ -96,25 +96,46 @@ const categories = [
                   {item.blurb && <p class="text-sm text-[color:var(--color-muted)]">{item.blurb}</p>}
                 </div>
                 <div class="flex gap-2 shrink-0 flex-wrap">
-                  <a
-                    href={`/downloads/${item.slug}.zip`}
-                    class="px-3 py-1.5 rounded-md bg-[color:var(--color-accent)] text-black text-sm font-semibold hover:opacity-90 transition whitespace-nowrap"
-                    download
-                  >
-                    Download workflow
-                  </a>
-                  <a
-                    href={`/downloads/${item.slug}-setup-guide.pdf`}
-                    class="px-3 py-1.5 rounded-md border border-white/15 hover:border-white/40 text-sm font-medium transition whitespace-nowrap"
-                  >
-                    Setup guide (PDF)
-                  </a>
-                  <a
-                    href={`/episodes/${item.slug}`}
-                    class="px-3 py-1.5 rounded-md text-[color:var(--color-muted)] hover:text-white text-sm font-medium transition whitespace-nowrap"
-                  >
-                    Watch episode →
-                  </a>
+                  {item.article ? (
+                    <>
+                      <a
+                        href={`/episodes/${item.slug}`}
+                        class="px-3 py-1.5 rounded-md bg-[color:var(--color-accent)] text-black text-sm font-semibold hover:opacity-90 transition whitespace-nowrap"
+                      >
+                        Read the write-up
+                      </a>
+                      {item.articleAsset && (
+                        <a
+                          href={`/downloads/${item.articleAsset}`}
+                          class="px-3 py-1.5 rounded-md border border-white/15 hover:border-white/40 text-sm font-medium transition whitespace-nowrap"
+                        >
+                          {item.articleAssetLabel ?? "Download (PDF)"}
+                        </a>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <a
+                        href={`/downloads/${item.slug}.zip`}
+                        class="px-3 py-1.5 rounded-md bg-[color:var(--color-accent)] text-black text-sm font-semibold hover:opacity-90 transition whitespace-nowrap"
+                        download
+                      >
+                        Download workflow
+                      </a>
+                      <a
+                        href={`/downloads/${item.slug}-setup-guide.pdf`}
+                        class="px-3 py-1.5 rounded-md border border-white/15 hover:border-white/40 text-sm font-medium transition whitespace-nowrap"
+                      >
+                        Setup guide (PDF)
+                      </a>
+                      <a
+                        href={`/episodes/${item.slug}`}
+                        class="px-3 py-1.5 rounded-md text-[color:var(--color-muted)] hover:text-white text-sm font-medium transition whitespace-nowrap"
+                      >
+                        Watch episode →
+                      </a>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
